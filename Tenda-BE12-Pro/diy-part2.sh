@@ -242,7 +242,6 @@ log "Gave up after $MAX_RETRIES attempts"
 
 ) &
 exit 0
-
 ODHCPD_EOF
 
 chmod 0755 target/linux/mediatek/filogic/base-files/etc/hotplug.d/iface/95-wan6-pd-recovery
