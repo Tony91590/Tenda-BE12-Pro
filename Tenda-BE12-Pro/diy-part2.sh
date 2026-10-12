@@ -174,73 +174,87 @@ cat > target/linux/mediatek/filogic/base-files/etc/hotplug.d/iface/95-wan6-pd-re
 TAG="wan6-pd-recovery"
 MAX_RETRIES=100
 SLEEP_INTERVAL=120
+NETWORK_RELOAD_AFTER=3
 
 log() {
-logger -t "$TAG" "$1"
+    logger -t "$TAG" "$1"
 }
-
-# Déclenchement au démarrage de WAN
 
 [ "$ACTION" = "ifup" ] && [ "$INTERFACE" = "wan" ] || exit 0
 
 (
-# Éviter plusieurs boucles simultanées
-LOCK="/var/lock/wan6-pd-recovery.lock"
-mkdir "$LOCK" 2>/dev/null || exit 0
-trap 'rmdir "$LOCK" 2>/dev/null' EXIT
+    LOCK="/var/lock/wan6-pd-recovery.lock"
+    mkdir "$LOCK" 2>/dev/null || exit 0
+    trap 'rmdir "$LOCK" 2>/dev/null' EXIT
 
-log "Starting WAN6 PD recovery"
+    log "Starting WAN6 PD recovery"
 
-get_pd() {
-	ubus call network.interface.wan6 status 2>/dev/null |
-		jsonfilter -e '@["ipv6-prefix"][0].address' 2>/dev/null
-}
+    get_pd() {
+        ubus call network.interface.wan6 status 2>/dev/null |
+            jsonfilter -e '@["ipv6-prefix"][0].address' 2>/dev/null
+    }
 
-# Vérifier le PD dès le démarrage
-PD="$(get_pd)"
+    reload_odhcpd() {
+        log "Reloading odhcpd"
+        /etc/init.d/odhcpd reload
+    }
 
-if [ -n "$PD" ]; then
-	log "PD already present: $PD"
-	/etc/init.d/odhcpd reload
-	log "odhcpd reloaded, no WAN6 restart needed"
-	exit 0
-fi
+    reload_network() {
+        log "PD missing: reloading network"
+        /etc/init.d/network reload
+        sleep 10
+    }
 
-log "No PD detected, starting recovery"
+    # Toujours recharger odhcpd au démarrage du script
+    PD="$(get_pd)"
 
-i=0
+    if [ -n "$PD" ]; then
+        log "PD already present: $PD"
+        reload_odhcpd
+        exit 0
+    fi
 
-while [ "$i" -lt "$MAX_RETRIES" ]; do
-	i=$((i + 1))
+    reload_odhcpd
+    log "No PD detected at startup"
 
-	log "Restarting wan6 (attempt $i)"
-	ifdown wan6
-	sleep 2
-	ifup wan6
+    i=0
 
-	# Attendre le PD jusqu'à 120 secondes
-	j=0
-	while [ "$j" -lt "$SLEEP_INTERVAL" ]; do
-		sleep 1
-		j=$((j + 1))
+    while [ "$i" -lt "$MAX_RETRIES" ]; do
+        i=$((i + 1))
 
-		PD="$(get_pd)"
+        if [ "$i" -eq "$NETWORK_RELOAD_AFTER" ]; then
+            reload_network
+            reload_odhcpd
+        fi
 
-		if [ -n "$PD" ]; then
-			log "IPv6-PD acquired: $PD"
-			sleep 2
-			/etc/init.d/odhcpd reload
-			log "odhcpd reloaded after PD acquisition"
-			exit 0
-		fi
-	done
+        log "Restarting wan6 (attempt $i)"
+        ifdown wan6
+        sleep 2
+        ifup wan6
 
-	log "No PD after attempt $i"
-done
+        j=0
+        while [ "$j" -lt "$SLEEP_INTERVAL" ]; do
+            sleep 1
+            j=$((j + 1))
 
-log "Gave up after $MAX_RETRIES attempts"
+            PD="$(get_pd)"
+
+            if [ -n "$PD" ]; then
+                log "IPv6-PD acquired: $PD"
+                sleep 2
+                reload_odhcpd
+                log "Recovery successful: $PD"
+                exit 0
+            fi
+        done
+
+        log "No PD after attempt $i"
+    done
+
+    log "Gave up after $MAX_RETRIES attempts"
 
 ) &
+
 exit 0
 ODHCPD_EOF
 
