@@ -172,69 +172,77 @@ cat > target/linux/mediatek/filogic/base-files/etc/hotplug.d/iface/95-wan6-pd-re
 #!/bin/sh
 
 TAG="wan6-pd-recovery"
+MAX_RETRIES=100
+SLEEP_INTERVAL=120
 
 log() {
-	logger -t "$TAG" "$1"
+logger -t "$TAG" "$1"
 }
 
-# Seulement wan6
-[ "$INTERFACE" = "wan6" ] || exit 0
+# Déclenchement au démarrage de WAN
 
-# Seulement au démarrage de l'interface
-[ "$ACTION" = "ifup" ] || exit 0
+[ "$ACTION" = "ifup" ] && [ "$INTERFACE" = "wan" ] || exit 0
 
-log "wan6 started"
+(
+# Éviter plusieurs boucles simultanées
+LOCK="/var/lock/wan6-pd-recovery.lock"
+mkdir "$LOCK" 2>/dev/null || exit 0
+trap 'rmdir "$LOCK" 2>/dev/null' EXIT
 
-# Laisser odhcp6c/netifd commencer son travail
-sleep 3
+log "Starting WAN6 PD recovery"
 
 get_pd() {
 	ubus call network.interface.wan6 status 2>/dev/null |
 		jsonfilter -e '@["ipv6-prefix"][0].address' 2>/dev/null
 }
 
-# Vérification initiale
+# Vérifier le PD dès le démarrage
 PD="$(get_pd)"
 
 if [ -n "$PD" ]; then
-	log "IPv6-PD found: $PD"
+	log "PD already present: $PD"
 	/etc/init.d/odhcpd reload
-	log "odhcpd reloaded"
+	log "odhcpd reloaded, no WAN6 restart needed"
 	exit 0
 fi
 
-# Aucun PD : forcer une nouvelle négociation DHCPv6
-log "No IPv6-PD found, restarting wan6"
+log "No PD detected, starting recovery"
 
-ifdown wan6
-sleep 2
-ifup wan6
-
-# Attendre le PD pendant 30 secondes
 i=0
 
-while [ "$i" -lt 30 ]; do
-	sleep 1
-
-	PD="$(get_pd)"
-
-	if [ -n "$PD" ]; then
-		log "IPv6-PD acquired: $PD"
-
-		# Laisser netifd appliquer le préfixe
-		sleep 2
-
-		/etc/init.d/odhcpd reload
-
-		log "odhcpd reloaded after PD acquisition"
-		exit 0
-	fi
-
+while [ "$i" -lt "$MAX_RETRIES" ]; do
 	i=$((i + 1))
+
+	log "Restarting wan6 (attempt $i)"
+	ifdown wan6
+	sleep 2
+	ifup wan6
+
+	# Attendre le PD jusqu'à 120 secondes
+	j=0
+	while [ "$j" -lt "$SLEEP_INTERVAL" ]; do
+		sleep 1
+		j=$((j + 1))
+
+		PD="$(get_pd)"
+
+		if [ -n "$PD" ]; then
+			log "IPv6-PD acquired: $PD"
+			sleep 2
+			/etc/init.d/odhcpd reload
+			log "odhcpd reloaded after PD acquisition"
+			exit 0
+		fi
+	done
+
+	log "No PD after attempt $i"
 done
 
-log "IPv6-PD not acquired after 30 seconds"
-exit 1
+log "Gave up after $MAX_RETRIES attempts"
+
+) &
+exit 0
+
 ODHCPD_EOF
 
 chmod 0755 target/linux/mediatek/filogic/base-files/etc/hotplug.d/iface/95-wan6-pd-recovery
