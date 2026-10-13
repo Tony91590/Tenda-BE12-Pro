@@ -18,8 +18,8 @@ on:
     - cron: 0 16 * * *
 
 env:
-  REPO_URL: https://github.com/openwrt/openwrt
-  REPO_BRANCH: main
+  REPO_URL: https://github.com/chasey-dev/immortalwrt-mt798x-rebase
+  REPO_BRANCH: 25.12-dev-wifi7
   REPO_COMMIT: 
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: Tenda-BE12-Pro/.config
