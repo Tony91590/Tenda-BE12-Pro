@@ -14,5 +14,5 @@
 #sed -i '/"FR"/s/\[ 1, 2 \]/[ 1, 1 ]/' package/mtk/applications/mtwifi-cfg-ucode/files/usr/share/schema/mtwifi/dat-defs.json
 sed -i 's/default-settings-chn/default-settings/g' include/target.mk
 #grep -n '"FR"' package/mtk/applications/mtwifi-cfg-ucode/files/usr/share/schema/mtwifi/dat-defs.json
-PATCH_FILE="$GITHUB_WORKSPACE/Xiaomi-AX3000T/diff.patch"
+PATCH_FILE="$GITHUB_WORKSPACE/Tenda-BE12-Pro/diff.patch"
 patch -p1 < "$PATCH_FILE"
