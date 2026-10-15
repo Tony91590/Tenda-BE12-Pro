@@ -18,7 +18,7 @@ sed -i 's/default-settings-chn/default-settings/g' include/target.mk
 #patch -p1 < "$PATCH_FILE"
 
 
-rm -rf package/luci-theme-argon package/luci-app-argon-config
+rm -rf feeds/luci/themes/luci-theme-argon feeds/luci/themes/luci-app-argon-config
 
 git clone --depth=1 https://github.com/jerrykuku/luci-theme-argon.git package/luci-theme-argon
 git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config.git package/luci-app-argon-config
