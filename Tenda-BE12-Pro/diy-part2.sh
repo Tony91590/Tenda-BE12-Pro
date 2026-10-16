@@ -14,11 +14,11 @@
 #sed -i '/"FR"/s/\[ 1, 2 \]/[ 1, 1 ]/' package/mtk/applications/mtwifi-cfg-ucode/files/usr/share/schema/mtwifi/dat-defs.json
 sed -i 's/default-settings-chn/default-settings/g' include/target.mk
 #grep -n '"FR"' package/mtk/applications/mtwifi-cfg-ucode/files/usr/share/schema/mtwifi/dat-defs.json
-#PATCH_FILE="$GITHUB_WORKSPACE/Tenda-BE12-Pro/diff.patch"
-#patch -p1 < "$PATCH_FILE"
+PATCH_FILE="$GITHUB_WORKSPACE/Tenda-BE12-Pro/diff.patch"
+patch -p1 < "$PATCH_FILE"
 
 
-rm -rf feeds/luci/themes/luci-theme-argon feeds/luci/themes/luci-app-argon-config
+#rm -rf feeds/luci/themes/luci-theme-argon feeds/luci/themes/luci-app-argon-config
 
-git clone --depth=1 https://github.com/jerrykuku/luci-theme-argon.git package/luci-theme-argon
-git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config.git package/luci-app-argon-config
+#git clone --depth=1 https://github.com/jerrykuku/luci-theme-argon.git package/luci-theme-argon
+#git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config.git package/luci-app-argon-config
