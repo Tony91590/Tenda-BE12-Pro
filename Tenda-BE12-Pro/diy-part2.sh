@@ -133,7 +133,18 @@ echo "[5] LuCI theme Argon..."
 
 git clone -b master https://github.com/immortalwrt/luci.git tmp_imm
 
-cp -r tmp_imm/themes/luci-theme-argon package/
+ARGON_DIR="$(find tmp_imm -type d -name luci-theme-argon -print -quit)"
+
+if [ -n "$ARGON_DIR" ]; then
+    echo "Argon trouve : $ARGON_DIR"
+    cp -r "$ARGON_DIR" package/luci-theme-argon
+    echo "Copie terminee dans package/luci-theme-argon"
+else
+    echo "ERREUR : luci-theme-argon introuvable dans le depot"
+    rm -rf tmp_imm
+    exit 1
+fi
+
 rm -rf tmp_imm
 
 git clone -b master https://github.com/immortalwrt/luci.git tmp_imm
