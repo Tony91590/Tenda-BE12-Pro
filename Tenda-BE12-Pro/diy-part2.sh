@@ -137,8 +137,8 @@ ARGON_DIR="$(find tmp_imm -type f -name Makefile -exec grep -l 'luci-theme-argon
 
 if [ -n "$ARGON_DIR" ] && [ -f "$ARGON_DIR/Makefile" ]; then
     echo "Argon trouve : $ARGON_DIR"
-    cp -r "$ARGON_DIR" feeds/luci/themes/luci-theme-argon
-    echo "Copie OK : feeds/luci/themes/luci-theme-argon"
+    cp -r "$ARGON_DIR" package/feeds/luci/themes/luci-theme-argon
+    echo "Copie OK : package/feeds/luci/themes/luci-theme-argon"
 else
     echo "ERREUR : luci-theme-argon introuvable"
     rm -rf tmp_imm
