@@ -153,6 +153,11 @@ git clone -b master https://github.com/immortalwrt/luci.git tmp_imm
 cp -r tmp_imm/applications/luci-app-argon-config package/
 rm -rf tmp_imm
 
+git clone -b master https://github.com/immortalwrt/luci.git tmp_imm
+
+cp -r tmp_imm/themes/luci-theme-argon feeds/luci/themes/
+rm -rf tmp_imm
+
 echo "[6] Default WiFi"
 
 mkdir -p files/etc/uci-defaults
