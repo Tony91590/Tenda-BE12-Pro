@@ -131,32 +131,10 @@ echo "[4] Kernel tweak (mt76 / Tenda-BE12-Pro)..."
 
 echo "[5] LuCI theme Argon..."
 
-git clone -b master https://github.com/immortalwrt/luci.git tmp_imm || exit 1
+rm -rf package/luci-theme-argon package/luci-app-argon-config
 
-ARGON_DIR="$(find tmp_imm -type f -name Makefile -exec grep -l 'luci-theme-argon' {} \; | sed -n '1p' | sed 's|/Makefile$||')"
-
-if [ -n "$ARGON_DIR" ] && [ -f "$ARGON_DIR/Makefile" ]; then
-    echo "Argon trouve : $ARGON_DIR"
-    mkdir -p package/feeds/luci/themes
-    cp -r "$ARGON_DIR" package/feeds/luci/themes/luci-theme-argon
-    echo "Copie OK : package/feeds/luci/themes/luci-theme-argon"
-else
-    echo "ERREUR : luci-theme-argon introuvable"
-    rm -rf tmp_imm
-    exit 1
-fi
-
-rm -rf tmp_imm
-
-git clone -b master https://github.com/immortalwrt/luci.git tmp_imm
-
-cp -r tmp_imm/applications/luci-app-argon-config package/
-rm -rf tmp_imm
-
-git clone -b master https://github.com/immortalwrt/luci.git tmp_imm
-
-cp -r tmp_imm/themes/luci-theme-argon feeds/luci/themes/
-rm -rf tmp_imm
+git clone -b release/v2.4.8-hotfix https://github.com/jerrykuku/luci-theme-argon.git package/luci-theme-argon
+git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config.git package/luci-app-argon-config
 
 echo "[6] Default WiFi"
 
