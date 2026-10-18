@@ -131,16 +131,17 @@ echo "[4] Kernel tweak (mt76 / Tenda-BE12-Pro)..."
 
 echo "[5] LuCI theme Argon..."
 
-git clone -b master https://github.com/immortalwrt/luci.git tmp_imm
+git clone -b master https://github.com/immortalwrt/luci.git tmp_imm || exit 1
 
-ARGON_DIR="$(find tmp_imm -type d -name luci-theme-argon -print -quit)"
+ARGON_DIR="$(find tmp_imm -type f -name Makefile -exec grep -l 'luci-theme-argon' {} \; | head -n 1 | sed 's|/Makefile$||')"
 
-if [ -n "$ARGON_DIR" ]; then
+if [ -n "$ARGON_DIR" ] && [ -f "$ARGON_DIR/Makefile" ]; then
     echo "Argon trouve : $ARGON_DIR"
-    cp -r "$ARGON_DIR" package/luci-theme-argon
-    echo "Copie terminee dans package/luci-theme-argon"
+    rm -rf feeds/luci/themes/luci-theme-argon
+    cp -r "$ARGON_DIR" feeds/luci/themes/luci-theme-argon
+    echo "Copie OK"
 else
-    echo "ERREUR : luci-theme-argon introuvable dans le depot"
+    echo "ERREUR : luci-theme-argon introuvable"
     rm -rf tmp_imm
     exit 1
 fi
