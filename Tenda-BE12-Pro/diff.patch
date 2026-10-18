@@ -1,3 +1,11 @@
+--- a/package/base-files/files/etc/shadow
++++ b/package/base-files/files/etc/shadow
+@@ -1,4 +1,4 @@
+-root:$5$36Dd/qyvVPWB8k94$DffqyLGvY827IFS7oJ5SwV6FFCS.qsrALBczTZMhCT7:20330:0:99999:7:::
++root:::0:99999:7:::
+ daemon:*:0:0:99999:7:::
+ ftp:*:0:0:99999:7:::
+ network:*:0:0:99999:7:::
 --- a/package/mtk/applications/mtwifi-cfg/files/mtwifi-cfg/mtwifi_defs.lua
 +++ b/package/mtk/applications/mtwifi-cfg/files/mtwifi-cfg/mtwifi_defs.lua
 @@ -172,7 +172,7 @@ mtwifi_defs.countryRegions = {
