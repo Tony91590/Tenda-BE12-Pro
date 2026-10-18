@@ -133,13 +133,12 @@ echo "[5] LuCI theme Argon..."
 
 git clone -b master https://github.com/immortalwrt/luci.git tmp_imm || exit 1
 
-ARGON_DIR="$(find tmp_imm -type f -name Makefile -exec grep -l 'luci-theme-argon' {} \; | head -n 1 | sed 's|/Makefile$||')"
+ARGON_DIR="$(find tmp_imm -type f -name Makefile -exec grep -l 'luci-theme-argon' {} \; | sed -n '1p' | sed 's|/Makefile$||')"
 
 if [ -n "$ARGON_DIR" ] && [ -f "$ARGON_DIR/Makefile" ]; then
     echo "Argon trouve : $ARGON_DIR"
-    rm -rf feeds/luci/themes/luci-theme-argon
     cp -r "$ARGON_DIR" feeds/luci/themes/luci-theme-argon
-    echo "Copie OK"
+    echo "Copie OK : feeds/luci/themes/luci-theme-argon"
 else
     echo "ERREUR : luci-theme-argon introuvable"
     rm -rf tmp_imm
