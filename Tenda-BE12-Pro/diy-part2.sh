@@ -133,7 +133,7 @@ echo "[5] LuCI theme Argon..."
 
 rm -rf package/luci-theme-argon package/luci-app-argon-config
 
-git clone -b release/v2.4.8-hotfix https://github.com/jerrykuku/luci-theme-argon.git package/luci-theme-argon
+git clone --depth=1 https://github.com/jerrykuku/luci-theme-argon.git package/luci-theme-argon
 git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config.git package/luci-app-argon-config
 
 echo "[6] Default WiFi"
