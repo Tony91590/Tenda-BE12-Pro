@@ -1,11 +1,14 @@
---- a/feeds.conf.default
-+++ b/feeds.conf.default
-@@ -2,4 +2,4 @@ src-git packages https://github.com/immortalwrt/packages.git;openwrt-24.10
- src-git luci https://github.com/immortalwrt/luci.git;openwrt-24.10
- src-git routing https://github.com/openwrt/routing.git;openwrt-24.10
- src-git telephony https://github.com/openwrt/telephony.git;openwrt-24.10
--src-git istore https://github.com/linkease/istore.git^7c5c69796fd9798610a56a80e1895aa9033e1e6c
-+# src-git istore https://github.com/linkease/istore.git^7c5c69796fd9798610a56a80e1895aa9033e1e6c
+--- a/package/mtk/applications/mtwifi-cfg/files/mtwifi-cfg/mtwifi_defs.lua
++++ b/package/mtk/applications/mtwifi-cfg/files/mtwifi-cfg/mtwifi_defs.lua
+@@ -172,7 +172,7 @@ mtwifi_defs.countryRegions = {
+     ["EE"] = { 1, 1 },
+     ["ES"] = { 1, 1 },
+     ["FI"] = { 1, 1 },
+-    ["FR"] = { 1, 2 },
++    ["FR"] = { 1, 1 },
+     ["GE"] = { 1, 2 },
+     ["GB"] = { 1, 1 },
+     ["GR"] = { 1, 1 },
 --- a/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/css/cascade.css
 +++ b/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/css/cascade.css
 @@ -1380,6 +1380,7 @@ footer > a {
@@ -16,3 +19,11 @@
  }
  .alert h4,
  .alert-message h4 {
+--- a/feeds.conf.default
++++ b/feeds.conf.default
+@@ -2,4 +2,4 @@ src-git packages https://github.com/immortalwrt/packages.git;openwrt-24.10
+ src-git luci https://github.com/immortalwrt/luci.git;openwrt-24.10
+ src-git routing https://github.com/openwrt/routing.git;openwrt-24.10
+ src-git telephony https://github.com/openwrt/telephony.git;openwrt-24.10
+-src-git istore https://github.com/linkease/istore.git^7c5c69796fd9798610a56a80e1895aa9033e1e6c
++# src-git istore https://github.com/linkease/istore.git^7c5c69796fd9798610a56a80e1895aa9033e1e6c
