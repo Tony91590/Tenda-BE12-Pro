@@ -131,11 +131,15 @@ echo "[4] Kernel tweak (mt76 / Tenda-BE12-Pro)..."
 
 echo "[5] LuCI theme Argon..."
 
-rm -rf package/luci-theme-argon package/luci-app-argon-config
+#git clone -b openwrt-25.12 https://github.com/immortalwrt/immortalwrt.git tmp_imm
 
-git clone --depth=1 https://github.com/jerrykuku/luci-theme-argon.git package/luci-theme-argon
-git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config.git package/luci-app-argon-config
+#cp -r tmp_imm/package/emortal package/
+#rm -rf tmp_imm
 
+#git clone -b openwrt-25.12 https://github.com/immortalwrt/immortalwrt.git tmp_imm
+
+#cp -r tmp_imm/package/emortal package/
+#rm -rf tmp_imm
 
 echo "[6] Default WiFi"
 
