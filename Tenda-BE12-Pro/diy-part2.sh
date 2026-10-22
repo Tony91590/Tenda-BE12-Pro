@@ -11,3 +11,7 @@
 #
 # Custom build script - Tenda-BE12-Pro
 
+PATCH_FILE="$GITHUB_WORKSPACE/Tenda-BE12-Pro/diff.patch"
+patch -p1 < "$PATCH_FILE"
+
+rm -f feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/css/cascade.css.orig
