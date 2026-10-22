@@ -11,7 +11,11 @@
 #
 # Custom build script - Tenda-BE12-Pro
 
-chmod 0777 ‎package/network/config/netifd/files/sbin/ifdown
+wget -O fix-ifdown.patch \
+"https://github.com/Tony91590/ImmortalWrt-tenda_be12-pro/commit/df7f2834742ae6850bb1a24d64ce53726c11e7fe.patch"
+
+git apply --check fix-ifdown.patch
+git apply fix-ifdown.patch
 
 PATCH_FILE="$GITHUB_WORKSPACE/Tenda-BE12-Pro/diff.patch"
 patch -p1 < "$PATCH_FILE"
