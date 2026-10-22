@@ -11,6 +11,8 @@
 #
 # Custom build script - Tenda-BE12-Pro
 
+chmod 0777 ‎package/network/config/netifd/files/sbin/ifdown
+
 PATCH_FILE="$GITHUB_WORKSPACE/Tenda-BE12-Pro/diff.patch"
 patch -p1 < "$PATCH_FILE"
 
