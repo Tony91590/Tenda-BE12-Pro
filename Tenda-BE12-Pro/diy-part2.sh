@@ -11,21 +11,8 @@
 #
 # Custom build script - Tenda-BE12-Pro
 
-# Fix netifd ifdown symlink
-PATCH_URL="https://github.com/Tony91590/ImmortalWrt-tenda_be12-pro/commit/df7f2834742ae6850bb1a24d64ce53726c11e7fe.patch"
-
-if wget -q -O /tmp/fix-ifdown.patch "$PATCH_URL"; then
-    if git apply --check /tmp/fix-ifdown.patch 2>/dev/null; then
-        git apply /tmp/fix-ifdown.patch
-        echo "ifdown patch applied successfully."
-    elif git apply --reverse --check /tmp/fix-ifdown.patch 2>/dev/null; then
-        echo "ifdown patch is already applied."
-    else
-        echo "WARNING: ifdown patch cannot be applied to the current source."
-    fi
-else
-    echo "WARNING: Failed to download ifdown patch."
-fi
+rm package/network/config/netifd/files/sbin/ifdown
+ln -s ifup package/network/config/netifd/files/sbin/ifdown
 
 # Apply custom diff patch
 PATCH_FILE="$GITHUB_WORKSPACE/Tenda-BE12-Pro/diff.patch"
