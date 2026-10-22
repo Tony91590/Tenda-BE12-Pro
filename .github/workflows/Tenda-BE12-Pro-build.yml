@@ -8,13 +8,13 @@ on:
     - cron: '0 16 * * *'
 
 env:
-  REPO_URL: https://github.com/padavanonly/immortalwrt-mt798x-6.6
-  REPO_BRANCH: openwrt-24.10-6.6
+  REPO_URL: https://github.com/Tony91590/ImmortalWrt-tenda_be12-pro
+  REPO_BRANCH: merge
   REPO_COMMIT: ''
   FEEDS_CONF: feeds.conf.default
-  CONFIG_FILE: Xiaomi-AX3000T/.config
-  DIY_P1_SH: Xiaomi-AX3000T/diy-part1.sh
-  DIY_P2_SH: Xiaomi-AX3000T/diy-part2.sh
+  CONFIG_FILE: Tenda-BE12-Pro/.config
+  DIY_P1_SH: Tenda-BE12-Pro/diy-part1.sh
+  DIY_P2_SH: Tenda-BE12-Pro/diy-part2.sh
   FORCE_UNSAFE_CONFIGURE: '1'
   UPLOAD_FIRMWARE: 'true'
   UPLOAD_RELEASE: 'true'
