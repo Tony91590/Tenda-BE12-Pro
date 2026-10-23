@@ -27,9 +27,9 @@ rm -f feeds.conf.default.orig
 #git clone --depth=1 https://github.com/jerrykuku/luci-theme-argon.git package/luci-theme-argon
 #git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config.git package/luci-app-argon-config
 
-rm -rf feeds/luci/themes/luci-theme-argon
+rm -rf package/mtk/applications/luci-app-turboacc-mtk
 
 git clone -b sauvegarde https://github.com/Tony91590/ImmortalWrt-tenda_be12-pro.git tmp_imm
 
-cp -r tmp_imm/package/emortal package/
+cp -r tmp_imm/package/mtk/applications/luci-app-turboacc-mtk package/mtk/applications/
 rm -rf tmp_imm
