@@ -29,7 +29,7 @@ rm -f feeds.conf.default.orig
 
 rm -rf feeds/luci/themes/luci-theme-argon
 
-git clone -b openwrt-25.12 https://github.com/immortalwrt/immortalwrt.git tmp_imm
+git clone -b sauvegarde https://github.com/Tony91590/ImmortalWrt-tenda_be12-pro.git tmp_imm
 
 cp -r tmp_imm/package/emortal package/
 rm -rf tmp_imm
