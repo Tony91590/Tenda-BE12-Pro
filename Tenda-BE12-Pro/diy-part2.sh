@@ -27,6 +27,7 @@ rm -f feeds.conf.default.orig
 #git clone --depth=1 https://github.com/jerrykuku/luci-theme-argon.git package/luci-theme-argon
 #git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config.git package/luci-app-argon-config
 
+rm -rf feeds/luci/themes/luci-theme-argon
 
 git clone -b openwrt-25.12 https://github.com/immortalwrt/immortalwrt.git tmp_imm
 
