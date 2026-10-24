@@ -11,8 +11,8 @@
 #
 # Custom build script - Tenda-BE12-Pro
 
-rm -f package/network/config/netifd/files/sbin/ifdown
-ln -s ifup package/network/config/netifd/files/sbin/ifdown
+#rm -f package/network/config/netifd/files/sbin/ifdown
+#ln -s ifup package/network/config/netifd/files/sbin/ifdown
 
 # Apply custom diff patch
 PATCH_FILE="$GITHUB_WORKSPACE/Tenda-BE12-Pro/diff.patch"
@@ -23,5 +23,16 @@ else
     echo "WARNING: diff.patch not found: $PATCH_FILE"
 fi
 
-# Remove Argon CSS backup file
+rm -f feeds.conf.default.orig
+rm -f include/target.mk.orig
+rm -f package/base-files/files/bin/config_generate.orig
+rm -f package/base-files/files/etc/shadow.orig
+rm -f package/mtk/applications/luci-app-turboacc-mtk/Makefile.orig
+rm -f package/mtk/applications/luci-app-turboacc-mtk/htdocs/luci-static/resources/view/turboacc.js.orig
+rm -f package/mtk/applications/luci-app-turboacc-mtk/po/templates/turboacc.pot.orig
+rm -f package/mtk/applications/luci-app-turboacc-mtk/po/zh_Hans/turboacc.po.orig
+rm -f package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc.orig
+rm -f package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc.orig
+rm -f package/mtk/applications/luci-app-turboacc-mtk/root/usr/libexec/rpcd/luci.turboacc.orig
+rm -f package/mtk/applications/mtwifi-cfg/files/mtwifi-cfg/mtwifi_defs.lua.orig
 rm -f feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/css/cascade.css.orig
