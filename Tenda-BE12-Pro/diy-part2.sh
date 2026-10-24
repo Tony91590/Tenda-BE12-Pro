@@ -11,9 +11,6 @@
 #
 # Custom build script - Tenda-BE12-Pro
 
-#rm -f package/network/config/netifd/files/sbin/ifdown
-#ln -s ifup package/network/config/netifd/files/sbin/ifdown
-
 # Apply custom diff patch
 PATCH_FILE="$GITHUB_WORKSPACE/Tenda-BE12-Pro/diff.patch"
 
@@ -23,11 +20,12 @@ else
     echo "WARNING: diff.patch not found: $PATCH_FILE"
 fi
 
-rm -rf tmp_imm
 
-git clone https://github.com/Tony91590/ImmortalWrt-tenda_be12-pro.git tmp_imm &&
+rm -rf package/mtk/applications/luci-app-turboacc-mtk
+
+git clone https://github.com/kalicyh/ImmortalWrt-tenda_be12-pro.git tmp_imm &&
 cd tmp_imm &&
-git checkout HASH_DU_COMMIT &&
+git checkout 1b9eb1188963b7a0ef899de085fd1fde3685aefa &&
 cd .. &&
 cp -r tmp_imm/package/mtk/applications/luci-app-turboacc-mtk package/mtk/applications/ &&
 rm -rf tmp_imm
