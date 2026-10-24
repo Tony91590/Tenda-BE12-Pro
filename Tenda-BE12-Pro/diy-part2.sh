@@ -22,6 +22,9 @@ else
     echo "WARNING: diff.patch not found: $PATCH_FILE"
 fi
 
+rm -f package/network/config/netifd/files/sbin/ifdown
+ln -s ifup package/network/config/netifd/files/sbin/ifdown
+
 rm -f package/base-files/files/bin/config_generate.orig
 rm -f package/base-files/files/etc/shadow.orig
 rm -f package/mtk/applications/mtwifi-cfg/files/mtwifi-cfg/mtwifi_defs.lua.orig
