@@ -1,4 +1,3 @@
-
 --- a/feeds.conf.default
 +++ b/feeds.conf.default
 @@ -2,4 +2,4 @@ src-git packages https://github.com/immortalwrt/packages.git;openwrt-24.10
@@ -5007,13 +5006,6 @@ index a83f9cd7166..00000000000
      ["GE"] = { 1, 2 },
      ["GB"] = { 1, 1 },
      ["GR"] = { 1, 1 },
-
-
-
-jjkkkn
-
-
-
 --- a/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/css/cascade.css
 +++ b/feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/css/cascade.css
 @@ -1380,6 +1380,7 @@ footer > a {
