@@ -11,6 +11,8 @@
 #
 # Custom build script - Tenda-BE12-Pro
 
+
+
 # Apply custom diff patch
 PATCH_FILE="$GITHUB_WORKSPACE/Tenda-BE12-Pro/diff.patch"
 
@@ -29,3 +31,9 @@ git checkout 1b9eb1188963b7a0ef899de085fd1fde3685aefa &&
 cd .. &&
 cp -r tmp_imm/package/mtk/applications/luci-app-turboacc-mtk package/mtk/applications/ &&
 rm -rf tmp_imm
+
+rm -f package/base-files/files/bin/config_generate.orig
+rm -f package/base-files/files/etc/shadow.orig
+rm -f package/mtk/applications/mtwifi-cfg/files/mtwifi-cfg/mtwifi_defs.lua.orig
+rm -f feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/css/cascade.css.orig
+rm -f feeds.conf.default.orig
