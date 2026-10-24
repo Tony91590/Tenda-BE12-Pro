@@ -48,7 +48,7 @@ jobs:
           apt-get update -y
           apt-get full-upgrade -y
           bash -c 'bash <(curl -sL https://build-scripts.immortalwrt.eu.org/init_build_environment.sh)'
-          apt-get autoremove --purge -y && sudo apt-get clean
+          apt-get autoremove --purge -y && apt-get clean
 
           mkdir -p /workdir
           chmod 777 /workdir
