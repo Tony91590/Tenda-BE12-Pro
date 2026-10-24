@@ -11,7 +11,7 @@
 #
 # Custom build script - Tenda-BE12-Pro
 
-
+sed -i 's/default-settings-chn/default-settings/g' include/target.mk
 
 # Apply custom diff patch
 PATCH_FILE="$GITHUB_WORKSPACE/Tenda-BE12-Pro/diff.patch"
