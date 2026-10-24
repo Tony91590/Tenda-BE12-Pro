@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: ubuntu:20.04
+      image: ubuntu-22.04
 
     steps:
       - name: Checkout
@@ -45,10 +45,10 @@ jobs:
           echo "$TZ" > /etc/timezone
 
           rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
-          sudo -E apt-get -qq update
+          apt-get update -y
+          apt-get full-upgrade -y
           bash -c 'bash <(curl -sL https://build-scripts.immortalwrt.eu.org/init_build_environment.sh)'
           apt-get autoremove --purge -y && sudo apt-get clean
-          timedatectl set-timezone "$TZ"
 
           mkdir -p /workdir
           chmod 777 /workdir
