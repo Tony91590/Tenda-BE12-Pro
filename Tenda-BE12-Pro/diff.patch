@@ -17,8 +17,6 @@
  	kmod-nf-nathelper \
  	kmod-nf-nathelper-extra \
  	luci-light \
-diff --git a/package/base-files/files/bin/config_generate b/package/base-files/files/bin/config_generate
-index 2a0462ea56c..d189a25c32e 100755
 --- a/package/base-files/files/bin/config_generate
 +++ b/package/base-files/files/bin/config_generate
 @@ -162,7 +162,7 @@ generate_network() {
