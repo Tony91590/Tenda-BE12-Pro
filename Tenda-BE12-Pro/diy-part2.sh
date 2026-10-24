@@ -22,7 +22,6 @@ else
     echo "WARNING: diff.patch not found: $PATCH_FILE"
 fi
 
-
 rm -rf package/mtk/applications/luci-app-turboacc-mtk
 
 git clone https://github.com/kalicyh/ImmortalWrt-tenda_be12-pro.git tmp_imm &&
