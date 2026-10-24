@@ -35,7 +35,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Initialiser le conteneur Ubuntu 20.04
+      - name: Initialiser le conteneur Ubuntu 22.04
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
@@ -223,12 +223,12 @@ jobs:
         run: |
           set -e
 
-          echo "release_tag=${FILE_DATE}-Xiaomi-AX3000T" >> "$GITHUB_OUTPUT"
+          echo "release_tag=${FILE_DATE}-Tenda-BE12-Pro" >> "$GITHUB_OUTPUT"
 
           cat > release.txt << 'EOF'
           Firmware ImmortalWrt compilé avec GitHub Actions.
 
-          Appareil : Xiaomi AX3000T
+          Appareil : Tenda BE12 Pro
           Adresse par défaut : 192.168.1.1
 
           Vérifiez la compatibilité et la méthode de flash
