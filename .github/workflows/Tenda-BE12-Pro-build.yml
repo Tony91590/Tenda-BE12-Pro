@@ -8,9 +8,9 @@ on:
     - cron: '0 16 * * *'
 
 env:
-  REPO_URL: https://github.com/kalicyh/ImmortalWrt-tenda_be12-pro
-  REPO_BRANCH: tenda-be12-pro
-  REPO_COMMIT: '1b9eb1188963b7a0ef899de085fd1fde3685aefa'
+  REPO_URL: https://github.com/Tony91590/immortalwrt
+  REPO_BRANCH: Tenda-BE12-Pro
+  REPO_COMMIT: ''
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: Tenda-BE12-Pro/.config
   DIY_P1_SH: Tenda-BE12-Pro/diy-part1.sh
