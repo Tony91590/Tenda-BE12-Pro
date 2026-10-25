@@ -1,5 +1,5 @@
 
-name: Xiaomi-AX3000T-build
+name: Tenda-BE12-Pro
 
 on:
   repository_dispatch:
