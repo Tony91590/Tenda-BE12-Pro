@@ -8,7 +8,7 @@ on:
     - cron: '0 16 * * *'
 
 env:
-  REPO_URL: https://github.com/Tony91590/ImmortalWrt-tenda_be12-pro
+  REPO_URL: https://github.com/kalicyh/m798x-tdbe
   REPO_BRANCH: burn
   REPO_COMMIT: ''
   FEEDS_CONF: feeds.conf.default
