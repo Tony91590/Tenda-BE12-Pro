@@ -11,8 +11,7 @@
 #
 # Custom build script - Tenda-BE12-Pro
 
-rm -f package/network/config/netifd/files/sbin/ifdown
-ln -s ifup package/network/config/netifd/files/sbin/ifdown
+sed -i 's/default-settings-chn/default-settings/g' include/target.mk
 
 # Apply custom diff patch
 PATCH_FILE="$GITHUB_WORKSPACE/Tenda-BE12-Pro/diff.patch"
