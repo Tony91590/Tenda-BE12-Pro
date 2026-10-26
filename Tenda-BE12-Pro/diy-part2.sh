@@ -22,5 +22,6 @@ else
     echo "WARNING: diff.patch not found: $PATCH_FILE"
 fi
 
-# Remove Argon CSS backup file
-rm -f feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/css/cascade.css.orig
+rm -f package/base-files/files/bin/config_generate.orig
+rm -f package/base-files/files/etc/shadow.orig
+rm -f package/mtk/applications/mtwifi-cfg/files/mtwifi-cfg/mtwifi_defs.lua.orig
