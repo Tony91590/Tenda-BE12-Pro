@@ -36,3 +36,10 @@ rm -f package/base-files/files/etc/shadow.orig
 rm -f package/mtk/applications/mtwifi-cfg/files/mtwifi-cfg/mtwifi_defs.lua.orig
 rm -f feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/css/cascade.css.orig
 rm -f feeds.conf.default.orig
+
+# rm -rf package/mtk/applications/luci-app-turboacc-mtk
+
+# git clone -b sauvegarde https://github.com/Tony91590/ImmortalWrt-tenda_be12-pro.git tmp_imm
+
+# cp -r tmp_imm/package/mtk/applications/luci-app-turboacc-mtk package/mtk/applications/
+# rm -rf tmp_imm
