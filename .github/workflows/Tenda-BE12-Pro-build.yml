@@ -9,7 +9,7 @@ on:
 
 env:
   REPO_URL: https://github.com/kalicyh/m798x-tdbe
-  REPO_BRANCH: burn
+  REPO_BRANCH: tenda-be12-pro
   REPO_COMMIT: ''
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: Tenda-BE12-Pro/.config
