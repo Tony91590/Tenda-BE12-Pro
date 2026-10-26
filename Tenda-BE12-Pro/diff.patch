@@ -9,8 +9,6 @@
  				*) ipad=${ipaddr:-"192.168.$((addr_offset++)).1"} ;;
  			esac
  
---- a/package/base-files/files/bin/config_generate
-+++ b/package/base-files/files/bin/config_generate
 @@ -314,7 +314,7 @@ generate_static_system() {
  		set system.@system[-1].hostname='ImmortalWrt'
  		set system.@system[-1].timezone='UTC'
