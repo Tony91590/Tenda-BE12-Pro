@@ -9,7 +9,7 @@
 # Description: Build OpenWrt using GitHub Actions
 #
 ###############Name##############
-name: Tenda-BE7200-build
+name: Tenda-BE12-Pro
 
 on:
   repository_dispatch:
