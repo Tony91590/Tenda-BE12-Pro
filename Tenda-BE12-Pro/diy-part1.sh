@@ -17,3 +17,10 @@
 #echo 'src-git helloworld https://github.com/fw876/helloworld' >>feeds.conf.default
 #echo 'src-git passwall https://github.com/xiaorouji/openwrt-passwall' >>feeds.conf.default
 #echo 'src-git messense https://github.com/messense/aliyundrive-webdav' >>feeds.conf.default
+
+
+src-git packages https://github.com/immortalwrt/packages.git;openwrt-24.10
+src-git luci https://github.com/Tony91590/luci-immortalwrt;patch-3
+src-git routing https://github.com/openwrt/routing.git;openwrt-24.10
+src-git telephony https://github.com/openwrt/telephony.git;openwrt-24.10
+#src-git istore https://github.com/linkease/istore.git^7c5c69796fd9798610a56a80e1895aa9033e1e6c
