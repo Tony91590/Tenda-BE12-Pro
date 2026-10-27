@@ -11,6 +11,8 @@
 #
 # Custom build script - Tenda-BE12-Pro
 
+PATCH_FILE="$GITHUB_WORKSPACE/Tenda-BE12-Pro/diff.patch"
+
 if [ -f "$PATCH_FILE" ]; then
     patch -p1 < "$PATCH_FILE"
 else
