@@ -20,7 +20,7 @@
 
 cat > feeds.conf.default << 'EOF'
 src-git packages https://github.com/immortalwrt/packages.git;openwrt-24.10
-src-git luci https://github.com/Tony91590/luci-immortalwrt;patch-3
+src-git luci https://github.com/immortalwrt/luci.git;openwrt-24.10
 src-git routing https://github.com/openwrt/routing.git;openwrt-24.10
 src-git telephony https://github.com/openwrt/telephony.git;openwrt-24.10
 EOF
