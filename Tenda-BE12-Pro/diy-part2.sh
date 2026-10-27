@@ -11,3 +11,10 @@
 #
 # Custom build script - Tenda-BE12-Pro
 
+if [ -f "$PATCH_FILE" ]; then
+    patch -p1 < "$PATCH_FILE"
+else
+    echo "WARNING: diff.patch not found: $PATCH_FILE"
+fi
+
+rm -f feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/css/cascade.css.orig
