@@ -47,11 +47,96 @@
  }
  .alert h4,
  .alert-message h4 {
---- a/feeds.conf.default
-+++ b/feeds.conf.default
-@@ -2,4 +2,4 @@ src-git packages https://github.com/immortalwrt/packages.git;openwrt-24.10
- src-git luci https://github.com/immortalwrt/luci.git;openwrt-24.10
- src-git routing https://github.com/openwrt/routing.git;openwrt-24.10
- src-git telephony https://github.com/openwrt/telephony.git;openwrt-24.10
--src-git istore https://github.com/linkease/istore.git^7c5c69796fd9798610a56a80e1895aa9033e1e6c
-+# src-git istore https://github.com/linkease/istore.git^7c5c69796fd9798610a56a80e1895aa9033e1e6c
+--- a/package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc
++++ b/package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc
+@@ -208,6 +208,11 @@ start_service() {
+ 	fi
+ 
+ 	logger -t turboacc "started (fastpath=$fastpath fullcone=$fullcone tcpcca=$tcpcca)"
++
++	sed -i '/prefer-family/d' /etc/wgetrc
++	echo "prefer-family = IPv4" >> /etc/wgetrc
++	echo 4096 > /proc/sys/vm/min_free_kbytes
++	echo 3 > /proc/sys/vm/drop_caches
+ }
+ 
+ reload_service() {
+--- a/package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc
++++ b/package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc
+@@ -33,11 +33,7 @@ else
+ 	uci -q set "turboacc.config.fastpath"="none"
+ fi
+ 
+-if has_module_file "xt_FULLCONENAT"; then
+-	uci -q set "turboacc.config.fullcone"="1"
+-else
+-	uci -q set "turboacc.config.fullcone"="2"
+-fi
++uci -q set "turboacc.config.fullcone"="2"
+ 
+ uci -q commit "turboacc"
+--- a/package/mtk/applications/luci-app-turboacc-mtk/root/usr/libexec/rpcd/luci.turboacc
++++ b/package/mtk/applications/luci-app-turboacc-mtk/root/usr/libexec/rpcd/luci.turboacc
+@@ -69,9 +69,9 @@ local methods = {
+ 			local features  = {
+ 				hasIPV6           = fs.access("/proc/net/ipv6_route"),
+ 				-- mt798x primary path is HNAT; other engines are user-selectable (kernel modules may be absent, init script handles gracefully)
+-				hasFLOWOFFLOADING = true,
+-				hasFASTCLASSIFIER = true,
+-				hasSHORTCUTFECM   = true,
++				hasFLOWOFFLOADING = false,
++				hasFASTCLASSIFIER = false,
++				hasSHORTCUTFECM   = false,
+ 				hasMEDIATEKHNAT   = module_file_exists(kernel, { "mtkhnat", "mediatek_hnat" }) or
+ 					module_loaded({ "mtkhnat", "mediatek_hnat" }) or
+ 					fs.stat("/sys/kernel/debug/hnat", "type") == "dir",
+--- a/package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc
++++ b/package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc
+@@ -79,14 +79,6 @@ _uci_bool_enabled() {
+ 	return 1
+ }
+ 
+-default_fullcone_mode() {
+-	if [ -e "/lib/modules/$(uname -r)/xt_FULLCONENAT.ko" ]; then
+-		printf '1\n'
+-	else
+-		printf '2\n'
+-	fi
+-}
+-
+ # ---------------------------------------------------------------------------
+ # procd lifecycle
+ # ---------------------------------------------------------------------------
+@@ -199,7 +191,7 @@ start_service() {
+ 
+ 	# ---------- fullcone NAT ----------
+ 	local fullcone
+-	config_get fullcone "config" "fullcone" "$(default_fullcone_mode)"
++	config_get fullcone "config" "fullcone" "2"
+ 	if [ -w "/proc/sys/net/netfilter/nf_conntrack_nat_mode" ]; then
+ 		echo "$fullcone" >"/proc/sys/net/netfilter/nf_conntrack_nat_mode" 2>/dev/null || \
+ 			logger -t turboacc "WARNING: failed to write nf_conntrack_nat_mode=$fullcone"
+--- a/package/mtk/applications/luci-app-turboacc-mtk/htdocs/luci-static/resources/view/turboacc.js
++++ b/package/mtk/applications/luci-app-turboacc-mtk/htdocs/luci-static/resources/view/turboacc.js
+@@ -1023,9 +1023,9 @@ function buildForm(features, config) {
+ 	var s = m.section(form.NamedSection, 'config', 'turboacc');
+ 	var o;
+ 	var tcpccaOptions = parseTokenList(features.hasTCPCCA);
+-	var showFlowOffloading = true;
+-	var showFastClassifier = true;
+-	var showShortcutFeCm = true;
++	var showFlowOffloading = false;
++	var showFastClassifier = false;
++	var showShortcutFeCm = false;
+ 	var showMediatekHnat = true;
+ 
+ 	s.tab('engine', _('Main path'), _('Select the primary acceleration engine.'));
+@@ -1162,7 +1162,7 @@ function buildForm(features, config) {
+ 	o = s.taboption('experience', form.ListValue, 'fullcone', _('Full cone NAT'),
+ 		_('Enable for gaming or P2P needs.'));
+ 	o.value('0', _('Disable'));
+-	if (features.hasXTFULLCONENAT || config.fullcone === '1')
++	if (false)
+ 		o.value('1', _('XT_FULLCONE_NAT'));
+ 	o.value('2', _('Boardcom_FULLCONE_NAT'));
+ 	o.default = config.fullcone || getDefaultFullcone(features);
