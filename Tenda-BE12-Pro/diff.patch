@@ -61,20 +61,6 @@
  }
  
  reload_service() {
---- a/package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc
-+++ b/package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc
-@@ -33,11 +33,7 @@ else
- 	uci -q set "turboacc.config.fastpath"="none"
- fi
- 
--if has_module_file "xt_FULLCONENAT"; then
--	uci -q set "turboacc.config.fullcone"="1"
--else
--	uci -q set "turboacc.config.fullcone"="2"
--fi
-+uci -q set "turboacc.config.fullcone"="2"
- 
- uci -q commit "turboacc"
 --- a/package/mtk/applications/luci-app-turboacc-mtk/root/usr/libexec/rpcd/luci.turboacc
 +++ b/package/mtk/applications/luci-app-turboacc-mtk/root/usr/libexec/rpcd/luci.turboacc
 @@ -69,9 +69,9 @@ local methods = {
@@ -116,27 +102,3 @@
  	if [ -w "/proc/sys/net/netfilter/nf_conntrack_nat_mode" ]; then
  		echo "$fullcone" >"/proc/sys/net/netfilter/nf_conntrack_nat_mode" 2>/dev/null || \
  			logger -t turboacc "WARNING: failed to write nf_conntrack_nat_mode=$fullcone"
---- a/package/mtk/applications/luci-app-turboacc-mtk/htdocs/luci-static/resources/view/turboacc.js
-+++ b/package/mtk/applications/luci-app-turboacc-mtk/htdocs/luci-static/resources/view/turboacc.js
-@@ -1023,9 +1023,9 @@ function buildForm(features, config) {
- 	var s = m.section(form.NamedSection, 'config', 'turboacc');
- 	var o;
- 	var tcpccaOptions = parseTokenList(features.hasTCPCCA);
--	var showFlowOffloading = true;
--	var showFastClassifier = true;
--	var showShortcutFeCm = true;
-+	var showFlowOffloading = false;
-+	var showFastClassifier = false;
-+	var showShortcutFeCm = false;
- 	var showMediatekHnat = true;
- 
- 	s.tab('engine', _('Main path'), _('Select the primary acceleration engine.'));
-@@ -1162,7 +1162,7 @@ function buildForm(features, config) {
- 	o = s.taboption('experience', form.ListValue, 'fullcone', _('Full cone NAT'),
- 		_('Enable for gaming or P2P needs.'));
- 	o.value('0', _('Disable'));
--	if (features.hasXTFULLCONENAT || config.fullcone === '1')
-+	if (false)
- 		o.value('1', _('XT_FULLCONE_NAT'));
- 	o.value('2', _('Boardcom_FULLCONE_NAT'));
- 	o.default = config.fullcone || getDefaultFullcone(features);
