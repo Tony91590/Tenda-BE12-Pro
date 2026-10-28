@@ -13,10 +13,16 @@
 
 sed -i 's/default-settings-chn/default-settings/g' include/target.mk
 
+
 # Apply custom diff patch
 PATCH_FILE="$GITHUB_WORKSPACE/Tenda-BE12-Pro/diff.patch"
+TARGET_FILE="package/mtk/applications/luci-app-turboacc-mtk/htdocs/luci-static/resources/view/turboacc.js"
 
 if [ -f "$PATCH_FILE" ]; then
+    if [ -f "$TARGET_FILE" ]; then
+        sed -i 's/\r$//' "$TARGET_FILE"
+    fi
+
     patch -p1 < "$PATCH_FILE"
 else
     echo "WARNING: diff.patch not found: $PATCH_FILE"
