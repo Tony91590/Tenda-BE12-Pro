@@ -1,3 +1,19 @@
+
+--- a/package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc
++++ b/package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc
+@@ -33,11 +33,7 @@ else
+ 	uci -q set "turboacc.config.fastpath"="none"
+ fi
+ 
+-if has_module_file "xt_FULLCONENAT"; then
+-	uci -q set "turboacc.config.fullcone"="1"
+-else
+-	uci -q set "turboacc.config.fullcone"="2"
+-fi
++uci -q set "turboacc.config.fullcone"="2"
+ 
+ uci -q commit "turboacc"
+ 
 --- a/package/base-files/files/bin/config_generate
 +++ b/package/base-files/files/bin/config_generate
 @@ -162,7 +162,7 @@ generate_network() {
