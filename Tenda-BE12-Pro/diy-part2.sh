@@ -21,7 +21,7 @@ fi
 
 rm -rf package/mtk/applications/luci-app-turboacc-mtk
 
-git clone -b Jfjfjfjrjjrjfjjfjrjrjjrjrjfj https://github.com/Tony91590/ImmortalWrt-tenda_be12-pro.git tmp_imm
+git clone -b Vvvvv2232 https://github.com/Tony91590/ImmortalWrt-tenda_be12-pro.git tmp_imm
 
 cp -r tmp_imm/package/mtk/applications/luci-app-turboacc-mtk package/mtk/applications/
 rm -rf tmp_imm
