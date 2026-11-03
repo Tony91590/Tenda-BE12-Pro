@@ -25,6 +25,10 @@ fi
 rm -f package/network/config/netifd/files/sbin/ifdown
 ln -s ifup package/network/config/netifd/files/sbin/ifdown
 
+rm -f package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc.orig
+rm -f package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc.orig
+rm -f package/mtk/applications/luci-app-turboacc-mtk/htdocs/luci-static/resources/view/turboacc.js.orig
+rm -f package/mtk/applications/luci-app-turboacc-mtk/root/usr/libexec/rpcd/luci.turboacc.orig
 rm -f package/base-files/files/bin/config_generate.orig
 rm -f package/base-files/files/etc/shadow.orig
 rm -f package/mtk/applications/mtwifi-cfg/files/mtwifi-cfg/mtwifi_defs.lua.orig
