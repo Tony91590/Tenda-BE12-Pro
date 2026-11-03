@@ -1,4 +1,15 @@
 
+--- a/package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc
++++ b/package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc
+@@ -58,7 +58,7 @@ start_service() {
+ 			echo "8 $fastpath_mh_eth_hnat_v6" > "$hnat_path/hnat_setting"
+ 
+ 			config_get "fastpath_mh_eth_hnat_bind_rate" "config" "fastpath_mh_eth_hnat_bind_rate" "30"
+-			echo "7 $fastpath_mh_eth_hnat_bind_rate" > "$hnat_path/hnat_setting"
++			echo "11 $fastpath_mh_eth_hnat_bind_rate" > "$hnat_path/hnat_setting"
+ 		fi
+ 		;;
+ 	esac
 --- a/package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc
 +++ b/package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc
 @@ -7,9 +7,7 @@ if [ -e "/lib/modules/$kernel_ver/mtkhnat.ko" ]; then
