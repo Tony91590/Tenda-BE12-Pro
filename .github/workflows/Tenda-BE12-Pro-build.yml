@@ -18,7 +18,7 @@ on:
 
 env:
   REPO_URL: https://github.com/Tony91590/immortalwrt
-  REPO_BRANCH: Tenda-BE12-Pro
+  REPO_BRANCH: tenda-test
   REPO_COMMIT: ''
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: Tenda-BE12-Pro/.config
