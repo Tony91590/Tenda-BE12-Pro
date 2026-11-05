@@ -45,7 +45,7 @@ rm -f feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/css/cascade.cs
 
 # rm -rf package/mtk/applications/luci-app-turboacc-mtk
 
-# git clone -b sauvegarde https://github.com/Tony91590/ImmortalWrt-tenda_be12-pro.git tmp_imm
+# git clone -b sauvegarde https://github.com/kalicyh/ImmortalWrt-tenda_be12-pro.git tmp_imm
 
 # cp -r tmp_imm/package/mtk/applications/luci-app-turboacc-mtk package/mtk/applications/
 # rm -rf tmp_imm
