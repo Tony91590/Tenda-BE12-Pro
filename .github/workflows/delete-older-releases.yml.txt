@@ -1,0 +1,56 @@
+name: delete-older-releases
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 16 * * *'
+
+permissions:
+  actions: write
+  contents: write
+
+jobs:
+  del_runs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Delete old workflow runs
+        uses: Mattraks/delete-workflow-runs@v2.1.0
+        with:
+          token: ${{ github.token }}
+          retain_days: 5
+          keep_minimum_runs: 0
+
+      - name: Delete old Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Fetching releases..."
+
+          releases=$(gh release list \
+            --repo "$GITHUB_REPOSITORY" \
+            --limit 1000 \
+            --order desc \
+            --json tagName \
+            --jq '.[5:][].tagName')
+
+          if [ -z "$releases" ]; then
+            echo "No old releases to delete."
+            exit 0
+          fi
+
+          while IFS= read -r tag; do
+            [ -z "$tag" ] && continue
+
+            echo "Deleting release: $tag"
+
+            gh release delete "$tag" \
+              --repo "$GITHUB_REPOSITORY" \
+              --cleanup-tag \
+              --yes
+          done <<< "$releases"
+
+          echo "Release cleanup completed."
