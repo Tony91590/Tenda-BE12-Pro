@@ -18,7 +18,7 @@ jobs:
         uses: Mattraks/delete-workflow-runs@v2.1.0
         with:
           token: ${{ github.token }}
-          retain_days: 5
+          retain_days: 2
           keep_minimum_runs: 0
 
       - name: Delete old Releases
@@ -35,7 +35,7 @@ jobs:
             --limit 1000 \
             --order desc \
             --json tagName \
-            --jq '.[5:][].tagName')
+            --jq '.[2:][].tagName')
 
           if [ -z "$releases" ]; then
             echo "No old releases to delete."
