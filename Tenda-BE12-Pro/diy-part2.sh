@@ -22,9 +22,6 @@ else
     echo "WARNING: diff.patch not found: $PATCH_FILE"
 fi
 
-rm -f package/network/config/netifd/files/sbin/ifdown
-ln -s ifup package/network/config/netifd/files/sbin/ifdown
-
 rm -f package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc.orig
 rm -f package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc.orig
 rm -f package/mtk/applications/luci-app-turboacc-mtk/htdocs/luci-static/resources/view/turboacc.js.orig
