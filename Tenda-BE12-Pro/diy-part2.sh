@@ -170,8 +170,6 @@ EOF
 
 chmod +x files/etc/uci-defaults/99-default-settings
 
-chmod +x files/etc/uci-defaults/99-default-settings
-
 #PATCH_FILE="$GITHUB_WORKSPACE/Tenda-BE12-Pro/diff.patch"
 #patch -p1 < "$PATCH_FILE"
 
