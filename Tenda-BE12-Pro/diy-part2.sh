@@ -127,7 +127,7 @@ EOF
 
 echo "[4] Kernel tweak (mt76 / Tenda-BE12-Pro)..."
 
-#sed -i '/AUTOLOAD:=$(call AutoProbe,mt7915e)/a \  MODPARAMS.mt7915e:=wed_enable=Y' package/kernel/mt76/Makefile
+sed -i '/AUTOLOAD:=$(call AutoProbe,mt7996e)/a \  MODPARAMS.mt7996e:=wed_enable=Y' package/kernel/mt76/Makefile
 
 echo "[5] LuCI theme Argon..."
 
@@ -143,20 +143,32 @@ mkdir -p files/etc/uci-defaults
 cat > files/etc/uci-defaults/99-default-settings << 'EOF'
 #!/bin/sh
 
+# WiFi 2.4 GHz
 uci set wireless.@wifi-device[0].disabled='0'
 uci set wireless.@wifi-iface[0].disabled='0'
 uci set wireless.@wifi-iface[0].encryption='none'
-uci set wireless.@wifi-iface[0].ssid="OpenWrt_2.4G"
+uci set wireless.@wifi-iface[0].ssid='OpenWrt_2.4G'
 
+# WiFi 5 GHz
 uci set wireless.@wifi-device[1].disabled='0'
 uci set wireless.@wifi-iface[1].disabled='0'
 uci set wireless.@wifi-iface[1].encryption='none'
-uci set wireless.@wifi-iface[1].ssid="OpenWrt_5G"
+uci set wireless.@wifi-iface[1].ssid='OpenWrt_5G'
 
-uci commit wireless 
+uci commit wireless
+
+# Software Flow Offloading
+uci set firewall.@defaults[0].flow_offloading='1'
+
+# Hardware Flow Offloading
+uci set firewall.@defaults[0].flow_offloading_hw='1'
+
+uci commit firewall
 
 exit 0
 EOF
+
+chmod +x files/etc/uci-defaults/99-default-settings
 
 chmod +x files/etc/uci-defaults/99-default-settings
 
