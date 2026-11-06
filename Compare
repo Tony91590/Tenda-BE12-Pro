@@ -1,0 +1,22 @@
+country FR: DFS-ETSI
+
+        Canaux 1–13
+(2400 - 2483.5 @ 40), (100 mW)
+
+        Canaux 36–48
+(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
+
+        Canaux 52–64
+(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
+
+        Canaux 100–144
+(5470 - 5725 @ 160), (500 mW), DFS, wmmrule=ETSI
+
+        Canaux 149–173
+(5725 - 5875 @ 80), (25 mW)
+
+        Wi-Fi 6E — Canaux 1–93
+(5945 - 6425 @ 320), (23), NO-OUTDOOR, wmmrule=ETSI
+
+        WiGig — Canaux 1–6
+(57000 - 71000 @ 2160), (40)
