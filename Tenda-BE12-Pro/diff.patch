@@ -1,9 +1,849 @@
-1111
+From e54d411d09070a642dbaf1c5ad1bf2531f315efd Mon Sep 17 00:00:00 2001
+From: xianfei <xianfei@bupt.cn>
+Date: Fri, 11 Sep 2026 21:08:34 +0800
+Subject: [PATCH] Fix runtime service and wireless setup error handling
 
+---
+ .github/workflows/runtime-tests.yml           |  47 +++++++
+ RUNTIME-STABILITY.md                          |  43 ++++++
+ .../root/etc/init.d/turboacc                  |  28 ++--
+ package/mtk/applications/mtwifi-cfg/Makefile  |   4 +-
+ .../mtwifi-cfg/files/mtwifi-cfg/mtwifi_cfg    |  68 ++++++---
+ .../files/mtwifi-cfg/mtwifi_utils.lua         |  28 ++--
+ .../mtwifi-cfg/files/netifd/mtwifi.sh         |  16 ++-
+ tests/runtime/README.md                       |  37 +++++
+ tests/runtime/test_mtwifi.lua                 | 112 +++++++++++++++
+ tests/runtime/test_runtime.py                 | 132 ++++++++++++++++++
+ 10 files changed, 466 insertions(+), 49 deletions(-)
+ create mode 100644 .github/workflows/runtime-tests.yml
+ create mode 100644 RUNTIME-STABILITY.md
+ create mode 100644 tests/runtime/README.md
+ create mode 100644 tests/runtime/test_mtwifi.lua
+ create mode 100644 tests/runtime/test_runtime.py
 
-
-2222
-
+diff --git a/.github/workflows/runtime-tests.yml b/.github/workflows/runtime-tests.yml
+new file mode 100644
+index 00000000000..ffe5f11f3a5
+--- /dev/null
++++ b/.github/workflows/runtime-tests.yml
+@@ -0,0 +1,47 @@
++name: Runtime script regression tests
++
++on:
++  push:
++    paths:
++      - 'package/mtk/applications/mtwifi-cfg/**'
++      - 'package/mtk/applications/luci-app-turboacc-mtk/**'
++      - 'package/base-files/files/etc/rc.common'
++      - 'tests/runtime/**'
++      - '.github/workflows/runtime-tests.yml'
++  pull_request:
++    paths:
++      - 'package/mtk/applications/mtwifi-cfg/**'
++      - 'package/mtk/applications/luci-app-turboacc-mtk/**'
++      - 'package/base-files/files/etc/rc.common'
++      - 'tests/runtime/**'
++      - '.github/workflows/runtime-tests.yml'
++  workflow_dispatch:
++
++permissions:
++  contents: read
++
++jobs:
++  regression:
++    runs-on: ubuntu-22.04
++    timeout-minutes: 10
++    steps:
++      - uses: actions/checkout@v4
++        with:
++          sparse-checkout: |
++            package/mtk/applications/mtwifi-cfg
++            package/mtk/applications/luci-app-turboacc-mtk
++            package/base-files/files/etc
++            tests/runtime
++      - name: Install host test runtimes
++        run: sudo apt-get update && sudo apt-get install -y lua5.1 luajit busybox
++      - name: Check shell syntax
++        run: |
++          sh -n package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc
++          sh -n package/mtk/applications/mtwifi-cfg/files/netifd/mtwifi.sh
++      - name: Test with BusyBox ash and Lua 5.1 runtimes
++        env:
++          TEST_LUA: lua5.1 luajit
++        run: |
++          mkdir -p "$RUNNER_TEMP/runtime-shell"
++          ln -s "$(command -v busybox)" "$RUNNER_TEMP/runtime-shell/sh"
++          TEST_SHELL="$RUNNER_TEMP/runtime-shell/sh" python3 tests/runtime/test_runtime.py
+diff --git a/RUNTIME-STABILITY.md b/RUNTIME-STABILITY.md
+new file mode 100644
+index 00000000000..3db6f6874fe
+--- /dev/null
++++ b/RUNTIME-STABILITY.md
+@@ -0,0 +1,43 @@
++# Runtime stability changes
++
++This branch improves runtime scripts without changing radio defaults,
++encryption modes, channel selection, driver binaries or flash layout.
++
++## Changes
++
++- Stopping turboacc disables its HNAT hook without stopping either radio or
++  re-entering rc.common's stop callback. Startup applies the configured HNAT
++  state without an unconditional off/on pulse.
++- Turboacc no longer commits unrelated firewall changes, forces wget to IPv4,
++  changes the memory watermark or drops filesystem caches on every reload.
++- mtwifi-cfg logs changed field names to syslog instead of dumping complete
++  input and old/new configuration values into an unbounded temporary file.
++  Existing `/tmp/mtwifi.log` files from an older version are not migrated or
++  uploaded by this change; handle old diagnostics as potentially sensitive.
++- Driver initialization uses blocking nanosleep with interrupted-sleep handling.
++- Known invalid configurations, unavailable profiles and interface command
++  failures return failure to netifd instead of unconditionally announcing that
++  wireless setup succeeded. Nixio is now an explicit package dependency.
++- Host regression tests cover these paths with synthetic data and isolated I/O.
++
++## Validation before deployment
++
++Run the host tests, build the affected packages/full image in the matching
++OpenWrt build environment, then test on a device with wired management access.
++Check service start/stop/reload, WPA3 association, multiple SSIDs, AP-client mode,
++new-client DHCP, same-radio and cross-radio traffic, IPv6 and multicast discovery.
++This branch does not implement transactional rollback after a partially
++completed radio/driver reload.
++
++## Follow-up work
++
++The AP-mode migration inside turboacc still needs to be separated into an
++explicit migration operation with discovered interface names, validation and
++rollback. This branch does not change that feature's network topology behavior.
++Firmware release defaults/documentation and feed pinning also need separate
++review.
++
++The reported same-radio ARP/broadcast problem is not claimed to be fixed in the
++driver. A bridge ARP proxy can help affected IPv4 clients, but should not be
++enabled globally without testing cold caches, new devices, guest isolation,
++IPv6 and multicast. No ARP workaround is forced on every user by this branch.
+diff --git a/package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc b/package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc
+index 4cf77ce7ace..1345ac27f62 100755
+--- a/package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc
++++ b/package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc
+@@ -5,6 +5,13 @@
+ START=90
+ STOP=10
+ USE_PROCD=1
++
++set_hnat_enabled() {
++	local hook="/sys/kernel/debug/hnat/hook_toggle"
++	[ -e "$hook" ] || return 0
++	echo "$1" > "$hook"
++}
++
+ start_service() {
+ 	config_load "turboacc"
+ 
+@@ -21,10 +28,8 @@ start_service() {
+ 		rmmod "shortcut_fe_cm" 2>"/dev/null"
+ 	fi
+ 
+-	echo 0 > /sys/kernel/debug/hnat/hook_toggle
+-        echo 1 > /sys/kernel/debug/hnat/hook_toggle
+-	if [ "$fastpath" != "mediatek_hnat" ] && lsmod | grep -q "mtkhnat"; then
+-		echo "0" > "/sys/kernel/debug/hnat/hook_toggle" 2>"/dev/null"
++	if [ "$fastpath" != "mediatek_hnat" ]; then
++		set_hnat_enabled 0
+ 	fi
+ 
+ 	case "$fastpath" in
+@@ -49,7 +54,7 @@ start_service() {
+ 		local hnat_path="/sys/kernel/debug/hnat"
+ 
+ 		config_get_bool "fastpath_mh_eth_hnat" "config" "fastpath_mh_eth_hnat" "1"
+-		echo "$fastpath_mh_eth_hnat" > "$hnat_path/hook_toggle"
++		set_hnat_enabled "$fastpath_mh_eth_hnat"
+ 
+ 		if [ "$fastpath_mh_eth_hnat" -eq "1" ]; then
+ 			local fastpath_mh_eth_hnat_v6 fastpath_mh_eth_hnat_ap fastpath_mh_eth_hnat_bind_rate
+@@ -73,7 +78,6 @@ start_service() {
+ 	config_get "tcpcca" "config" "tcpcca" "cubic"
+ 	sysctl -w net.ipv4.tcp_congestion_control="$tcpcca" >"/dev/null"
+ 
+-	uci -q commit "firewall"
+ 	/etc/init.d/firewall restart >"/dev/null" 2>&1
+ 	available_interfaces=""
+ for iface in eth0 eth1 wan; do
+@@ -114,11 +118,6 @@ done
+ else
+     echo "Invalid IPv4 address: $fastpath_mh_eth_hnat_ap"
+ fi
+-	sed -i '/prefer-family/d' /etc/wgetrc
+-	echo "prefer-family = IPv4" >> /etc/wgetrc
+-	echo 4096 > /proc/sys/vm/min_free_kbytes
+-	echo 3 > /proc/sys/vm/drop_caches
+-	
+ }
+ 
+ reload_service() {
+@@ -126,10 +125,9 @@ reload_service() {
+ }
+ 
+ stop_service() {
+-	ifconfig rai0 down
+-	ifconfig ra0 down
+-        echo 0 > /sys/kernel/debug/hnat/hook_toggle 
+-	stop
++	# netifd owns the wireless interfaces. Never call rc.common's stop()
++	# from this callback: it calls stop_service() again.
++	set_hnat_enabled 0
+ }
+ 
+ service_triggers() {
+diff --git a/package/mtk/applications/mtwifi-cfg/Makefile b/package/mtk/applications/mtwifi-cfg/Makefile
+index f5b4b2f2338..36b4e3f7834 100644
+--- a/package/mtk/applications/mtwifi-cfg/Makefile
++++ b/package/mtk/applications/mtwifi-cfg/Makefile
+@@ -7,7 +7,7 @@ include $(TOPDIR)/rules.mk
+ PKG_NAME:=mtwifi-cfg
+ PKG_LICENSE:=GPL-2.0+
+ PKG_VERSION:=1
+-PKG_RELEASE:=1
++PKG_RELEASE:=2
+ 
+ include $(INCLUDE_DIR)/package.mk
+ 
+@@ -16,7 +16,7 @@ define Package/mtwifi-cfg
+   CATEGORY:=MTK Properties
+   SUBMENU:=Applications
+   TITLE:=mtwifi configure scripts for mt798x
+-  DEPENDS:=+iwinfo +wifi-dats +wifi-scripts +lua-cjson +datconf-lua @!PACKAGE_luci-app-mtk @!PACKAGE_wifi-profile
++  DEPENDS:=+iwinfo +wifi-dats +wifi-scripts +lua-cjson +luci-lib-nixio +datconf-lua @!PACKAGE_luci-app-mtk @!PACKAGE_wifi-profile
+ endef
+ 
+ define Build/Compile
+diff --git a/package/mtk/applications/mtwifi-cfg/files/mtwifi-cfg/mtwifi_cfg b/package/mtk/applications/mtwifi-cfg/files/mtwifi-cfg/mtwifi_cfg
+index 783e6761a0d..0271d370398 100755
+--- a/package/mtk/applications/mtwifi-cfg/files/mtwifi-cfg/mtwifi_cfg
++++ b/package/mtk/applications/mtwifi-cfg/files/mtwifi-cfg/mtwifi_cfg
+@@ -33,9 +33,8 @@ function string:split(sep)
+ end
+ 
+ function load_profile(path)
+-    local cfgs = {}
+-
+-    cfgobj = datconf.openfile(path)
++    local cfgs
++    local cfgobj = datconf.openfile(path)
+     if cfgobj then
+         cfgs = cfgobj:getall()
+         cfgobj:close()
+@@ -92,14 +91,16 @@ end
+ 
+ function ifup(ifname)
+     if ifname and #ifname > 0 then
+-        os.execute("ifconfig "..ifname.." up")
++        local ok = os.execute("ifconfig "..ifname.." up")
++        if ok ~= true and ok ~= 0 then error("mtwifi-cfg: interface up failed") end
+         nixio.syslog("info", "mtwifi-cfg: ifconfig up "..ifname)
+     end
+ end
+ 
+ function ifdown(ifname)
+     if ifname and #ifname > 0 then
+-        os.execute("ifconfig "..ifname.." down")
++        local ok = os.execute("ifconfig "..ifname.." down")
++        if ok ~= true and ok ~= 0 then error("mtwifi-cfg: interface down failed") end
+         nixio.syslog("info", "mtwifi-cfg: ifconfig down "..ifname)
+     end
+ end
+@@ -367,19 +368,35 @@ end
+ function mtwifi_cfg_setup(argv)
+     local cfg = cjson.decode(argv)
+ 
+-    utils.log2file("input = " .. inspect(cfg))
++    if type(cfg) ~= "table" or type(cfg.device) ~= "string" or
++        type(cfg.config) ~= "table" or type(cfg.interfaces) ~= "table" then
++        nixio.syslog("err", "mtwifi-cfg: invalid configuration structure")
++        return false
++    end
+ 
+     local devname = cfg.device
+     local dev = l1dat.devname_ridx[devname]
+ 
+-    if not dev then return end
++    if not dev then
++        nixio.syslog("err", "mtwifi-cfg: unknown wireless device")
++        return false
++    end
++
++    for _, vif in pairs(cfg.interfaces) do
++        if type(vif) ~= "table" or type(vif.config) ~= "table" or
++            (vif.config.mode ~= "ap" and vif.config.mode ~= "sta") or
++            not defs.enc2dat[vif.config.encryption] then
++            nixio.syslog("err", "mtwifi-cfg: unsupported interface configuration")
++            return false
++        end
++    end
+ 
+     local profile = dev.profile_path
+ 
+     local dats = load_profile(profile)
+     if not dats then
+         nixio.syslog("err", "mtwifi-cfg: profile ".. profile .. "open failed")
+-        return
++        return false
+     end
+     local dats_orig = load_profile(profile)
+ 
+@@ -387,14 +404,15 @@ function mtwifi_cfg_setup(argv)
+ 
+     if vif_num == 0 then
+         nixio.syslog("err", "mtwifi-cfg: not valid vif found!")
+-        return
++        return false
+     end
+     if bssid_num > defs.max_mbssid then
+         nixio.syslog("err", "mtwifi-cfg: too many vifs!")
+-        return
++        return false
+     end
+     if apcli_num > 1 then
+         nixio.syslog("err", "mtwifi-cfg: only support one apcli vif!")
++        return false
+     end
+ 
+         dats.BssidNum = 4
+@@ -403,7 +421,7 @@ function mtwifi_cfg_setup(argv)
+     -- setup wireless mode
+     if type(cfg.config.htmode) ~= type("") then
+         nixio.syslog("err", "mtwifi-cfg: invalid htmode!")
+-        return
++        return false
+     end
+ 
+     local WirelessMode
+@@ -433,14 +451,14 @@ function mtwifi_cfg_setup(argv)
+ 
+     if not WirelessMode then
+         nixio.syslog("err", "mtwifi-cfg: invalid wireless mode!")
+-        return
++        return false
+     end
+ 
+     -- setup bandwidth
+     local bw = string.match(cfg.config.htmode, "%d+")
+     if not bw then
+         nixio.syslog("err", "mtwifi-cfg: invalid bandwidth!")
+-        return
++        return false
+     end
+ 
+     -- default bw is 20MHz
+@@ -687,7 +705,7 @@ function mtwifi_cfg_setup(argv)
+ 
+     local reinstall_wifidrv = false
+     local cfg_diff = diff_cfg(dats_orig, dats)
+-    utils.log2file("diff = " .. inspect(cfg_diff))
++    utils.log_config_changes(cfg_diff)
+ 
+     save_profile(dats, profile)
+ 
+@@ -695,7 +713,7 @@ function mtwifi_cfg_setup(argv)
+         if cfg_diff[v] ~= nil then
+             if utils.exists("/sys/module/mt_wifi") == false then
+                 nixio.syslog("err", "mtwifi-cfg: mtwifi module is build-in, please reboot the device!")
+-                return
++                return false
+             end
+             reinstall_wifidrv = true
+         end
+@@ -757,6 +775,7 @@ function mtwifi_cfg_setup(argv)
+     end
+ 
+     mtwifi_cfg_iwpriv_hook(cfg)
++    return true
+ end
+ 
+ function mtwifi_cfg_down(devname)
+@@ -776,14 +795,21 @@ local action = {
+ 
+     ["setup"] = function()
+         local argv = io.read()
+-        if #argv > 0 then
+-            mtwifi_cfg_setup(argv)
++        if argv and #argv > 0 then
++            return mtwifi_cfg_setup(argv)
+         end
++        return false
+     end
+ }
+ 
+-if #arg == 1 then
+-    action[arg[1]]()
+-elseif #arg == 2 then
+-    action[arg[1]](arg[2])
++if (#arg ~= 1 and #arg ~= 2) or not action[arg[1]] then
++    nixio.syslog("err", "mtwifi-cfg: invalid command")
++    os.exit(1)
++end
++
++local ok, result = pcall(action[arg[1]], arg[2])
++if not ok or result == false then
++    -- Do not include exception text: parsers and dependencies may echo secrets.
++    nixio.syslog("err", "mtwifi-cfg: operation failed")
++    os.exit(1)
+ end
+diff --git a/package/mtk/applications/mtwifi-cfg/files/mtwifi-cfg/mtwifi_utils.lua b/package/mtk/applications/mtwifi-cfg/files/mtwifi-cfg/mtwifi_utils.lua
+index 4a224eaea01..355805c5d19 100644
+--- a/package/mtk/applications/mtwifi-cfg/files/mtwifi-cfg/mtwifi_utils.lua
++++ b/package/mtk/applications/mtwifi-cfg/files/mtwifi-cfg/mtwifi_utils.lua
+@@ -1,9 +1,8 @@
+ #!/usr/bin/lua
+ 
++local nixio = require "nixio"
+ local mtwifi_utils = {}
+ 
+-local mtwifi_logfile = "/tmp/mtwifi.log"
+-
+ function mtwifi_utils.esc(x)
+     return (x:gsub('%%', '%%%%')
+              :gsub('^%^', '%%^')
+@@ -83,14 +82,27 @@ function mtwifi_utils.token_get(str, n, v)
+ end
+ 
+ function mtwifi_utils.sleep(s)
+-    local ntime = os.clock() + s
+-    repeat until os.clock() > ntime
++    local seconds = math.floor(s)
++    local nanoseconds = math.floor((s - seconds) * 1000000000)
++    while true do
++        local ok, remaining_seconds, remaining_nanoseconds = nixio.nanosleep(seconds, nanoseconds)
++        if ok then return end
++        if ok == nil then error("mtwifi-cfg: nanosleep failed") end
++        -- nixio returns false plus the remaining duration on EINTR.
++        seconds, nanoseconds = remaining_seconds, remaining_nanoseconds
++    end
+ end
+ 
+-function mtwifi_utils.log2file(str)
+-    logfile = io.open(mtwifi_logfile, "a")
+-    logfile:write(os.date("%H:%M:%S", os.time()) .. " " .. str .. "\n")
+-    logfile:close()
++function mtwifi_utils.log_config_changes(diff)
++    local fields = {}
++    for field in pairs(diff) do
++        fields[#fields + 1] = field
++    end
++    table.sort(fields)
++    -- Only log field names, never configuration values or old/new secrets.
++    -- Use the system log's bounded storage instead of an append-only /tmp file.
++    nixio.syslog("info", "mtwifi-cfg: changed fields (" .. #fields .. "): " ..
++        table.concat(fields, ", "):sub(1, 1024))
+ end
+ 
+ return mtwifi_utils
+diff --git a/package/mtk/applications/mtwifi-cfg/files/netifd/mtwifi.sh b/package/mtk/applications/mtwifi-cfg/files/netifd/mtwifi.sh
+index 5cc25d6b93a..29d18ae5ebb 100755
+--- a/package/mtk/applications/mtwifi-cfg/files/netifd/mtwifi.sh
++++ b/package/mtk/applications/mtwifi-cfg/files/netifd/mtwifi.sh
+@@ -92,13 +92,19 @@ mtwifi_vif_sta_set_data() {
+ }
+ 
+ drv_mtwifi_setup() {
+-	ubus -t 120 wait_for network.interface.lan
++	if ! ubus -t 120 wait_for network.interface.lan; then
++		wireless_setup_failed "LAN_NOT_READY"
++		return 1
++	fi
+ 
+ 	local dev="$1"
+ 
+ 	json_add_string device "$dev"
+ 
+-	lock $LOCK_FILE
++	if ! lock "$LOCK_FILE"; then
++		wireless_setup_failed "LOCK_FAILED"
++		return 1
++	fi
+ 
+ 	logger -t "netifd-mtwifi" "up: $dev"
+ 
+@@ -111,7 +117,11 @@ drv_mtwifi_setup() {
+ 	APCLI_IDX=0
+ 	for_each_interface sta mtwifi_vif_sta_set_data
+ 
+-	json_dump | /sbin/mtwifi_cfg setup
++	if ! json_dump | /sbin/mtwifi_cfg setup; then
++		lock -u "$LOCK_FILE"
++		wireless_setup_failed "MTWIFI_SETUP_FAILED"
++		return 1
++	fi
+ 
+ 	for_each_interface ap mtwifi_vif_ap_config
+ 	for_each_interface sta mtwifi_vif_sta_config
+diff --git a/tests/runtime/README.md b/tests/runtime/README.md
+new file mode 100644
+index 00000000000..93f39d21885
+--- /dev/null
++++ b/tests/runtime/README.md
+@@ -0,0 +1,37 @@
++# Runtime script regression tests
++
++Run from the repository root:
++
++```sh
++python3 tests/runtime/test_runtime.py
++```
++
++Requirements: Python 3, a POSIX shell, and Lua 5.1 or LuaJIT. By default the
++runner uses available `luajit` and `lua` executables. Override with `TEST_LUA`
++(space-separated executables) and `TEST_SHELL` (one shell executable path).
++The CI workflow uses Lua 5.1, LuaJIT and BusyBox ash.
++
++The tests execute the real Lua configuration generator and shell service
++functions with mocked native modules, commands, profile storage and netifd
++notifications. Service filesystem writes are redirected into temporary trees.
++They do not access a router, modify host network settings or load kernel modules.
++All credentials are synthetic fixtures.
++
++Coverage:
++
++- A valid WPA3/EHT configuration still produces the expected encryption and PMF
++  settings and starts the AP interface.
++- Invalid/empty input, missing profiles, unsupported encryption, invalid wireless
++  modes and interface failures propagate to a nonzero exit status.
++- Neither input values nor old/new keys appear in diagnostics; summaries are
++  bounded in size.
++- Interrupted sleeps resume the remaining duration without busy waiting.
++- The real rc.common stop callback completes without shutting down Wi-Fi or
++  recursively calling stop.
++- Starting turboacc does not clear caches, change memory watermarks or rewrite
++  wget preferences, and does not commit unrelated firewall edits.
++- Failed netifd setup releases the acquired lock and never reports the radio up.
++
++These tests are not a firmware build or hardware qualification. They do not
++prove radio throughput, group-key operation, multicast delivery or recovery
++from a partially completed driver reload.
+diff --git a/tests/runtime/test_mtwifi.lua b/tests/runtime/test_mtwifi.lua
+new file mode 100644
+index 00000000000..de462e44343
+--- /dev/null
++++ b/tests/runtime/test_mtwifi.lua
+@@ -0,0 +1,112 @@
++-- Host-side regression tests; all router I/O and native modules are mocked.
++local base = "package/mtk/applications/mtwifi-cfg/files/mtwifi-cfg/"
++package.path = base .. "?.lua;" .. package.path
++local case = arg[1]
++local logs, commands, saved, sleeps = {}, {}, nil, {}
++local secret, old_secret = "fixture-secret-NEW", "fixture-secret-OLD"
++local fixture = {
++    device = "radio5",
++    config = {band = "5g", htmode = "EHT160", channel = "36"},
++    interfaces = {["0"] = {
++        mtwifi_ifname = "rai0",
++        config = {mode = "ap", encryption = "sae", ssid = "fixture", key = secret}
++    }}
++}
++local decode_error, missing_profile, empty_input, interface_error
++if case == "invalid-json" then decode_error = true
++elseif case == "missing-profile" then missing_profile = true
++elseif case == "empty-input" then empty_input = true
++elseif case == "invalid-encryption" then fixture.interfaces["0"].config.encryption = "unsupported"
++elseif case == "invalid-structure" then fixture = false
++elseif case == "unknown-device" then fixture.device = "absent"
++elseif case == "no-interfaces" then fixture.interfaces = {}
++elseif case == "invalid-mode" then fixture.config.band = "bad"
++elseif case == "invalid-htmode" then fixture.config.htmode = nil
++elseif case == "interface-failure" then interface_error = true
++elseif case == "too-many-stations" then
++    fixture.interfaces["0"].config.mode = "sta"
++    fixture.interfaces["1"] = {config = {mode = "sta", encryption = "sae"}}
++end
++
++local nixio = {
++    syslog = function(level, message) logs[#logs + 1] = message end,
++    nanosleep = function(seconds, nanoseconds)
++        sleeps[#sleeps + 1] = {seconds, nanoseconds}
++        if case == "sleep-error" then return nil, "error", 22 end
++        if #sleeps == 1 then return false, 0, 250000000 end
++        return true
++    end
++}
++package.preload.nixio = function() return nixio end
++local utils = require "mtwifi_utils"
++
++if case == "sleep" then
++    utils.sleep(1.5)
++    assert(#sleeps == 2)
++    assert(sleeps[1][1] == 1 and sleeps[1][2] == 500000000)
++    assert(sleeps[2][1] == 0 and sleeps[2][2] == 250000000)
++elseif case == "sleep-error" then
++    assert(not pcall(utils.sleep, 1))
++    assert(#sleeps == 1)
++elseif case == "bounded-log" then
++    local diff = {}
++    for i = 1, 1000 do diff["WPAPSK" .. i] = {old_secret, secret} end
++    utils.log_config_changes(diff)
++    assert(#logs == 1 and #logs[1] < 1100)
++else
++    package.preload.cjson = function() return {decode = function()
++        if decode_error then error(secret) end
++        return fixture
++    end} end
++    package.preload.l1dat_parser = function() return {
++        load_l1_profile = function() return {devname_ridx = {radio5 = {
++            profile_path = "/fixture/profile.dat", main_ifname = "rai0",
++            ext_ifname = "rai", apcli_ifname = "apclii", wds_ifname = "wdsi",
++            mesh_ifname = "meshi"
++        }}} end
++    } end
++    package.preload.datconf = function() return {openfile = function()
++        if missing_profile then return nil end
++        return {
++            getall = function() return {BssidNum = "4", WdsEnable = "0", WPAPSK1 = old_secret} end,
++            merge = function(self, values) saved = values end,
++            close = function() end
++        }
++    end} end
++
++    io.read = function() if not empty_input then return "fixture-json" end end
++    io.open = function() error("unexpected file I/O") end
++    io.popen = function(command)
++        return {read = function()
++            if command:find("/flags", 1, true) then return "0" end
++            return "rai0"
++        end, close = function() end}
++    end
++    os.execute = function(command)
++        commands[#commands + 1] = command
++        if interface_error and command == "ifconfig rai0 up" then return 256 end
++        return 0
++    end
++    local exit_code
++    os.exit = function(code) exit_code = code; error("EXIT") end
++    arg = {"setup"}
++    local ok = pcall(dofile, base .. "mtwifi_cfg")
++    if case == "success" then
++        assert(ok and exit_code == nil, table.concat(logs, "\n"))
++        assert(saved.AuthMode == "WPA3PSK" and saved.EncrypType == "AES")
++        assert(saved.PMFMFPC == "1" and saved.PMFMFPR == "1")
++        assert(saved.WPAPSK1 == secret)
++        assert(table.concat(commands, "\n"):find("ifconfig rai0 up", 1, true))
++    else
++        assert(not ok and exit_code == 1, "failure was not propagated: " .. case)
++        if case ~= "interface-failure" then
++            assert(saved == nil and #commands == 0, "invalid input changed router state")
++        end
++    end
++end
++
++for _, message in ipairs(logs) do
++    assert(not message:find(secret, 1, true), "new secret in log")
++    assert(not message:find(old_secret, 1, true), "old secret in log")
++end
++print("PASS " .. case)
+diff --git a/tests/runtime/test_runtime.py b/tests/runtime/test_runtime.py
+new file mode 100644
+index 00000000000..0d25359874a
+--- /dev/null
++++ b/tests/runtime/test_runtime.py
+@@ -0,0 +1,132 @@
++#!/usr/bin/env python3
++"""Run actual service functions with temporary files and stubbed router APIs."""
++import os
++from pathlib import Path
++import re
++import shutil
++import subprocess
++import tempfile
++import unittest
++
++ROOT = Path(__file__).resolve().parents[2]
++APP = ROOT / "package/mtk/applications"
++SHELL = os.environ.get("TEST_SHELL", "/bin/sh")
++
++
++class ShellTests(unittest.TestCase):
++    def run_shell(self, script, env=None):
++        result = subprocess.run(
++            [SHELL], input=script, text=True, capture_output=True,
++            env={**os.environ, **(env or {})}, timeout=5,
++        )
++        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        return result.stdout.splitlines()
++
++    def test_stop_does_not_stop_wifi_or_recurse(self):
++        source = (APP / "luci-app-turboacc-mtk/root/etc/init.d/turboacc").read_text()
++        rc = (ROOT / "package/base-files/files/etc/rc.common").read_text()
++        # Exercise the real rc.common stop -> stop_service call chain.
++        stop = re.search(r"\n\tstop\(\) \{.*?\n\t\}", rc, re.S).group()
++        script = source + "\n" + stop + """
++procd_lock() { :; }
++procd_kill() { echo killed; }
++set_hnat_enabled() { echo "hnat:$1"; }
++ifconfig() { echo "unexpected-ifconfig:$*"; }
++initscript=turboacc
++stop
++"""
++        self.assertEqual(self.run_shell(script), ["hnat:0", "killed"])
++
++    def test_start_preserves_unrelated_system_state(self):
++        source = (APP / "luci-app-turboacc-mtk/root/etc/init.d/turboacc").read_text()
++        with tempfile.TemporaryDirectory() as directory:
++            root = Path(directory)
++            paths = ["sys/kernel/debug/hnat/hook_toggle", "proc/sys/vm/drop_caches",
++                     "proc/sys/vm/min_free_kbytes", "etc/wgetrc",
++                     "proc/sys/net/netfilter/nf_conntrack_nat_mode"]
++            for name in paths:
++                path = root / name
++                path.parent.mkdir(parents=True, exist_ok=True)
++                path.write_text("sentinel\n")
++            firewall = root / "etc/init.d/firewall"
++            firewall.parent.mkdir(parents=True, exist_ok=True)
++            firewall.write_text("#!/bin/sh\nexit 0\n")
++            firewall.chmod(0o755)
++            # Redirect every absolute write in the sourced service to a temp tree.
++            for prefix in ("/sys/", "/proc/", "/etc/"):
++                source = source.replace(prefix, str(root) + prefix)
++            script = source + """
++config_load() { :; }
++config_get() {
++    case "$1" in
++        fastpath) fastpath=none;;
++        fullcone) fullcone=2;;
++        tcpcca) tcpcca=cubic;;
++        *) return 1;;
++    esac
++}
++lsmod() { :; }
++sysctl() { :; }
++ifconfig() { echo 'error fetching interface information'; return 1; }
++uci() { echo "unexpected-uci:$*"; return 1; }
++start_service
++"""
++            output = self.run_shell(script)
++            self.assertFalse(any("unexpected-uci:" in line for line in output))
++            for name in paths[1:4]:
++                self.assertEqual((root / name).read_text(), "sentinel\n")
++            self.assertEqual((root / paths[0]).read_text(), "0\n")
++
++    def test_wireless_setup_reports_failure_and_unlocks(self):
++        source = (APP / "mtwifi-cfg/files/netifd/mtwifi.sh").read_text()
++        source = source.replace(". /lib/netifd/netifd-wireless.sh", "")
++        source = source.replace("/sbin/mtwifi_cfg", '"$TEST_CFG"')
++        for failure in ("lan", "lock", "cfg", "none"):
++            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as directory:
++                cfg = Path(directory) / "cfg"
++                cfg.write_text("#!/bin/sh\ncat >/dev/null\n[ \"$FAILURE\" != cfg ]\n")
++                cfg.chmod(0o755)
++                script = "init_wireless_driver() { :; }; add_driver() { :; }\n" + source + """
++ubus() { [ "$FAILURE" != lan ]; }
++lock() { echo "lock:$*"; [ "$FAILURE" != lock ]; }
++logger() { :; }
++json_add_string() { :; }
++l1util() { echo rai; }
++for_each_interface() { echo "interfaces:$*"; }
++json_dump() { echo '{}'; }
++wireless_set_up() { echo UP; }
++wireless_setup_failed() { echo "FAILED:$1"; }
++drv_mtwifi_setup radio5
++echo "status:$?"
++"""
++                output = self.run_shell(script, {"FAILURE": failure, "TEST_CFG": str(cfg)})
++                self.assertEqual(output[-1], "status:" + ("0" if failure == "none" else "1"))
++                self.assertEqual("UP" in output, failure == "none")
++                if failure in ("none", "cfg"):
++                    self.assertIn("lock:-u /tmp/mtwifi.lock", output)
++                if failure == "cfg":
++                    self.assertNotIn("interfaces:ap mtwifi_vif_ap_config", output)
++                    self.assertIn("FAILED:MTWIFI_SETUP_FAILED", output)
++
++
++class LuaTests(unittest.TestCase):
++    def test_lua_runtime(self):
++        interpreters = os.environ.get("TEST_LUA", "luajit lua").split()
++        interpreters = [exe for exe in interpreters if shutil.which(exe)]
++        self.assertTrue(interpreters, "Install Lua 5.1 or LuaJIT to run the tests")
++        cases = ["success", "invalid-json", "empty-input", "invalid-structure",
++                 "unknown-device", "missing-profile", "invalid-encryption", "invalid-mode",
++                 "invalid-htmode", "no-interfaces", "too-many-stations", "interface-failure",
++                 "sleep", "sleep-error", "bounded-log"]
++        for interpreter in interpreters:
++            for case in cases:
++                with self.subTest(interpreter=interpreter, case=case):
++                    result = subprocess.run(
++                        [interpreter, "tests/runtime/test_mtwifi.lua", case], cwd=ROOT,
++                        text=True, capture_output=True, timeout=5,
++                    )
++                    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++
++
++if __name__ == "__main__":
++    unittest.main(verbosity=2)
+--- a/package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc
++++ b/package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc
+@@ -57,15 +57,13 @@ start_service() {
+ 		set_hnat_enabled "$fastpath_mh_eth_hnat"
+ 
+ 		if [ "$fastpath_mh_eth_hnat" -eq "1" ]; then
+-			local fastpath_mh_eth_hnat_v6 fastpath_mh_eth_hnat_ap fastpath_mh_eth_hnat_bind_rate
++			local fastpath_mh_eth_hnat_v6 fastpath_mh_eth_hnat_bind_rate
+ 
+ 			config_get_bool "fastpath_mh_eth_hnat_v6" "config" "fastpath_mh_eth_hnat_v6" "1"
+ 			echo "8 $fastpath_mh_eth_hnat_v6" > "$hnat_path/hnat_setting"
+ 
+ 			config_get "fastpath_mh_eth_hnat_bind_rate" "config" "fastpath_mh_eth_hnat_bind_rate" "30"
+-			echo "7 $fastpath_mh_eth_hnat_bind_rate" > "$hnat_path/hnat_setting"
+-
+-			config_get "fastpath_mh_eth_hnat_ap" "config" "fastpath_mh_eth_hnat_ap" ""
++			echo "11 $fastpath_mh_eth_hnat_bind_rate" > "$hnat_path/hnat_setting"
+ 		fi
+ 		;;
+ 	esac
+@@ -79,45 +77,6 @@ start_service() {
+ 	sysctl -w net.ipv4.tcp_congestion_control="$tcpcca" >"/dev/null"
+ 
+ 	/etc/init.d/firewall restart >"/dev/null" 2>&1
+-	available_interfaces=""
+-for iface in eth0 eth1 wan; do
+-    if ifconfig $iface 2>&1 | grep -qv "error fetching interface information"; then
+-        echo "$iface interface detected."
+-        available_interfaces="$available_interfaces $iface"
+-    else
+-        echo "$iface interface not found."
+-    fi
+-done
+-
+-    if echo "$fastpath_mh_eth_hnat_ap" | grep -qE '^([0-9]{1,3}\.){3}[0-9]{1,3}$'; then
+-    echo "Valid IPv4 address detected: $fastpath_mh_eth_hnat_ap"
+-    uci delete network.wan
+-    uci delete network.wwan
+-    uci delete network.wan6
+-
+-    current_ports=$(uci get network.@device[0].ports)
+-    echo "Current bridge ports: $current_ports"
+-
+-    new_ports="$current_ports"
+-    for port in $available_interfaces; do
+-        if echo "$current_ports" | grep -qw "$port"; then
+-            echo "Port $port is already part of the bridge"
+-        else
+-            echo "Adding port $port to the bridge"
+-            new_ports="$new_ports $port"
+-        fi
+-    done
+-
+-    uci set network.@device[0].ports="$new_ports"
+-    uci set dhcp.lan.ignore=1
+-    uci set network.lan.ipaddr="$fastpath_mh_eth_hnat_ap"
+-    uci set wireless.wifinet1.network='lan'
+-    uci set wireless.wifinet2.network='lan'
+-    echo "Committing changes"
+-    uci commit
+-else
+-    echo "Invalid IPv4 address: $fastpath_mh_eth_hnat_ap"
+-fi
+ }
+ 
+ reload_service() {
 --- a/package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc
 +++ b/package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc
 @@ -7,9 +7,7 @@ if [ -e "/lib/modules/$kernel_ver/mtkhnat.ko" ]; then
