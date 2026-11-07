@@ -31,7 +31,16 @@ else
     echo "WARNING: diff.patch not found: $PATCH_FILE"
 fi
 
+rm -f .github/workflows/runtime-tests.yml.orig
+rm -f RUNTIME-STABILITY.md.orig
 rm -f package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc.orig
+rm -f package/mtk/applications/mtwifi-cfg/Makefile.orig
+rm -f package/mtk/applications/mtwifi-cfg/files/mtwifi-cfg/mtwifi_cfg.orig
+rm -f package/mtk/applications/mtwifi-cfg/files/mtwifi-cfg/mtwifi_utils.lua.orig
+rm -f package/mtk/applications/mtwifi-cfg/files/netifd/mtwifi.sh.orig
+rm -f tests/runtime/README.md.orig
+rm -f tests/runtime/test_mtwifi.lua.orig
+rm -f tests/runtime/test_runtime.py.orig
 rm -f package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc.orig
 rm -f package/mtk/applications/luci-app-turboacc-mtk/htdocs/luci-static/resources/view/turboacc.js.orig
 rm -f package/mtk/applications/luci-app-turboacc-mtk/root/usr/libexec/rpcd/luci.turboacc.orig
