@@ -250,5 +250,7 @@ chmod +x files/etc/uci-defaults/99-default-settings
 
 rm -f feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js.orig
 rm -f target/linux/mediatek/filogic/base-files/etc/board.d/02_network.orig
+rm -f config/Config-kernel.in.orig
+rm -f include/kernel-defaults.mk.orig
 
 echo "Done ✔"
