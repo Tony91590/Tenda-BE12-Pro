@@ -28,7 +28,7 @@ PATCH_VER="$PATCH_DIR/vermagic.patch"
 
 echo "[0] Setting kernel vermagic"
 
-#patch -p1 < "$PATCH_VER"
+patch -p1 < "$PATCH_VER"
 
 echo "✓ Setting kernel vermagic applied successfully."
 
