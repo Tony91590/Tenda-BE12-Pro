@@ -18,11 +18,11 @@ set -e
 # Kernel vermagic override
 # ==========================================
 
-#PATCH_VER="$GITHUB_WORKSPACE/Tenda-BE12-Pro/vermagic.patch"
+PATCH_VER="$GITHUB_WORKSPACE/Tenda-BE12-Pro/vermagic.patch"
 
 echo "[0] Setting kernel vermagic"
 
-#patch -p1 < "$PATCH_VER"
+patch -p1 < "$PATCH_VER"
 
 echo "✓ Setting kernel vermagic applied successfully."
 
