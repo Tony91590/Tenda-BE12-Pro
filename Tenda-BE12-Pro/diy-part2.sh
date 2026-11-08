@@ -15,10 +15,16 @@
 set -e
 
 # ==========================================
+# Custom patch directory
+# ==========================================
+
+PATCH_DIR="$GITHUB_WORKSPACE/Tenda-BE12-Pro"
+
+# ==========================================
 # Kernel vermagic override
 # ==========================================
 
-#PATCH_VER="$GITHUB_WORKSPACE/Tenda-BE12-Pro/vermagic.patch"
+PATCH_VER="$PATCH_DIR/vermagic.patch"
 
 echo "[0] Setting kernel vermagic"
 
@@ -30,16 +36,16 @@ echo "✓ Setting kernel vermagic applied successfully."
 # LuCI system status patch
 # ==========================================
 
-PATCH_FILE="$GITHUB_WORKSPACE/Tenda-BE12-Pro/10_system.patch"
+SYSTEM_PATCH="$PATCH_DIR/10_system.patch"
 
 echo "[1] Applying LuCI system status patch..."
 
-if [ ! -f "$PATCH_FILE" ]; then
-    echo "ERROR: System patch not found: $PATCH_FILE"
+if [ ! -f "$SYSTEM_PATCH" ]; then
+    echo "ERROR: System patch not found: $SYSTEM_PATCH"
     exit 1
 fi
 
-patch --batch -p1 < "$PATCH_FILE"
+patch --batch -p1 < "$SYSTEM_PATCH"
 
 echo "✓ LuCI system status patch applied successfully."
 
@@ -47,7 +53,7 @@ echo "✓ LuCI system status patch applied successfully."
 # Tenda BE12 Pro board integration
 # ==========================================
 
-BOARD_MK="$GITHUB_WORKSPACE/Tenda-BE12-Pro/board-port.mk"
+BOARD_MK="$PATCH_DIR/board-port.mk"
 FLMK="target/linux/mediatek/image/filogic.mk"
 MARKER="# >>> TENDA-PORT be12-pro >>>"
 
@@ -80,7 +86,6 @@ fi
 # Tenda BE12 Pro DTS patch
 # ==========================================
 
-PATCH_DIR="$GITHUB_WORKSPACE/Tenda-BE12-Pro"
 DTS_PATCH="$PATCH_DIR/dts.patch"
 
 echo "[1.2] Applying Tenda BE12 Pro DTS patch..."
@@ -207,9 +212,9 @@ EOF
 # Kernel / MT76 / MT7996E / WED
 # ==========================================
 
-echo "[4] Applying MediaTek MT7987 WED support..."
-
 WED_PATCH="$PATCH_DIR/0125-mediatek-add-MT7987-WED-support-from-MediaTek-SDK.patch"
+
+echo "[4] Applying MediaTek MT7987 WED patch..."
 
 if [ ! -f "$WED_PATCH" ]; then
     echo "ERROR: MT7987 WED patch not found: $WED_PATCH"
@@ -259,7 +264,7 @@ echo "[6] Default WiFi"
 
 mkdir -p files/etc/uci-defaults
 
-cat > files/etc/uci-defaults/99-default-settings << 'EOF'
+cat > files/etc/uci-defaults/99-default-settings <<'EOF'
 #!/bin/sh
 
 uci set wireless.@wifi-device[0].disabled='0'
@@ -283,8 +288,8 @@ chmod +x files/etc/uci-defaults/99-default-settings
 # Cleanup
 # ==========================================
 
-#PATCH_FILE="$GITHUB_WORKSPACE/Tenda-BE12-Pro/diff.patch"
-#patch -p1 < "$PATCH_FILE"
+#DIFF_PATCH="$PATCH_DIR/diff.patch"
+#patch -p1 < "$DIFF_PATCH"
 
 rm -f feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js.orig
 rm -f target/linux/mediatek/filogic/base-files/etc/board.d/02_network.orig
