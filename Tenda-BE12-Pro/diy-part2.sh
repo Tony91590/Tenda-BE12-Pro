@@ -18,11 +18,11 @@ set -e
 # Kernel vermagic override
 # ==========================================
 
-PATCH_VER="$GITHUB_WORKSPACE/Tenda-BE12-Pro/vermagic.patch"
+#PATCH_VER="$GITHUB_WORKSPACE/Tenda-BE12-Pro/vermagic.patch"
 
 echo "[0] Setting kernel vermagic"
 
-patch -p1 < "$PATCH_VER"
+#patch -p1 < "$PATCH_VER"
 
 echo "✓ Setting kernel vermagic applied successfully."
 
@@ -34,7 +34,12 @@ PATCH_FILE="$GITHUB_WORKSPACE/Tenda-BE12-Pro/10_system.patch"
 
 echo "[1] Applying LuCI system status patch..."
 
-patch -p1 < "$PATCH_FILE"
+if [ ! -f "$PATCH_FILE" ]; then
+    echo "ERROR: System patch not found: $PATCH_FILE"
+    exit 1
+fi
+
+patch --batch -p1 < "$PATCH_FILE"
 
 echo "✓ LuCI system status patch applied successfully."
 
@@ -72,13 +77,11 @@ else
 fi
 
 # ==========================================
-# Tenda BE12 Pro DTS and Network patches
+# Tenda BE12 Pro DTS patch
 # ==========================================
 
 PATCH_DIR="$GITHUB_WORKSPACE/Tenda-BE12-Pro"
-
 DTS_PATCH="$PATCH_DIR/dts.patch"
-NETWORK_PATCH="$PATCH_DIR/network.patch"
 
 echo "[1.2] Applying Tenda BE12 Pro DTS patch..."
 
@@ -90,6 +93,12 @@ fi
 patch --batch -p1 < "$DTS_PATCH"
 
 echo "✓ DTS patch applied successfully."
+
+# ==========================================
+# Tenda BE12 Pro Network patch
+# ==========================================
+
+NETWORK_PATCH="$PATCH_DIR/network.patch"
 
 echo "[1.3] Applying Tenda BE12 Pro Network patch..."
 
@@ -195,12 +204,41 @@ cat > files/usr/share/rpcd/acl.d/luci-mod-status-autocore.json <<'EOF'
 EOF
 
 # ==========================================
-# Kernel tweaks
+# Kernel / MT76 / MT7996E / WED
 # ==========================================
 
-echo "[4] Kernel tweak (mt76 / Tenda-BE12-Pro)..."
+echo "[4] Applying MediaTek MT7987 WED support..."
 
-sed -i '/AUTOLOAD:=$(call AutoProbe,mt7996e)/a \  MODPARAMS.mt7996e:=wed_enable=Y' package/kernel/mt76/Makefile
+WED_PATCH="$PATCH_DIR/0125-mediatek-add-MT7987-WED-support-from-MediaTek-SDK.patch"
+
+if [ ! -f "$WED_PATCH" ]; then
+    echo "ERROR: MT7987 WED patch not found: $WED_PATCH"
+    exit 1
+fi
+
+patch --batch -p1 < "$WED_PATCH"
+
+echo "✓ MediaTek MT7987 WED patch applied successfully."
+
+# ------------------------------------------
+# Enable WED for mt7996e
+# ------------------------------------------
+
+echo "[4.1] Enabling WED for mt7996e..."
+
+MT76_MAKEFILE="package/kernel/mt76/Makefile"
+
+if [ ! -f "$MT76_MAKEFILE" ]; then
+    echo "ERROR: mt76 Makefile not found: $MT76_MAKEFILE"
+    exit 1
+fi
+
+if grep -qF 'MODPARAMS.mt7996e:=wed_enable=Y' "$MT76_MAKEFILE"; then
+    echo "mt7996e WED already enabled, skipping."
+else
+    sed -i '/AUTOLOAD:=$(call AutoProbe,mt7996e)/a \  MODPARAMS.mt7996e:=wed_enable=Y' "$MT76_MAKEFILE"
+    echo "✓ mt7996e WED enabled successfully."
+fi
 
 # ==========================================
 # LuCI theme Argon
