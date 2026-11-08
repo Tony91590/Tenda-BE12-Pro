@@ -72,6 +72,37 @@ else
 fi
 
 # ==========================================
+# Tenda BE12 Pro DTS and Network patches
+# ==========================================
+
+PATCH_DIR="$GITHUB_WORKSPACE/Tenda-BE12-Pro"
+
+DTS_PATCH="$PATCH_DIR/dts.patch"
+NETWORK_PATCH="$PATCH_DIR/network.patch"
+
+echo "[1.2] Applying Tenda BE12 Pro DTS patch..."
+
+if [ ! -f "$DTS_PATCH" ]; then
+    echo "ERROR: DTS patch not found: $DTS_PATCH"
+    exit 1
+fi
+
+patch --batch -p1 < "$DTS_PATCH"
+
+echo "✓ DTS patch applied successfully."
+
+echo "[1.3] Applying Tenda BE12 Pro Network patch..."
+
+if [ ! -f "$NETWORK_PATCH" ]; then
+    echo "ERROR: Network patch not found: $NETWORK_PATCH"
+    exit 1
+fi
+
+patch --batch -p1 < "$NETWORK_PATCH"
+
+echo "✓ Network patch applied successfully."
+
+# ==========================================
 # LuCI RPC backend
 # ==========================================
 
