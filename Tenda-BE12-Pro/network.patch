@@ -1,0 +1,12 @@
+--- a/target/linux/mediatek/filogic/base-files/etc/board.d/02_network
++++ b/target/linux/mediatek/filogic/base-files/etc/board.d/02_network
+@@ -182,6 +182,9 @@ mediatek_setup_interfaces()
+ 	yuncore,ax835)
+ 		ucidef_set_interfaces_lan_wan lan wan
+ 		;;
++	tenda,be12-pro)
++		ucidef_set_interfaces_lan_wan "lan3 lan4 lan5 eth1" eth2
++		;;
+ 	keenetic,kn-1812|\
+ 	netcraze,nc-1812)
+ 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 lan4 lan5" "wan"
