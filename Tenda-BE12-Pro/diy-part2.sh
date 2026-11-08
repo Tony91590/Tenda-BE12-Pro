@@ -38,6 +38,42 @@ patch -p1 < "$PATCH_FILE"
 
 echo "✓ LuCI system status patch applied successfully."
 
+# ==========================================
+# Tenda BE12 Pro board integration
+# ==========================================
+
+BOARD_MK="$GITHUB_WORKSPACE/Tenda-BE12-Pro/board-port.mk"
+FLMK="target/linux/mediatek/image/filogic.mk"
+MARKER="# >>> TENDA-PORT be12-pro >>>"
+
+echo "[1.1] Integrating Tenda BE12 Pro board definition..."
+
+if [ ! -f "$BOARD_MK" ]; then
+    echo "ERROR: board-port.mk not found: $BOARD_MK"
+    exit 1
+fi
+
+if [ ! -f "$FLMK" ]; then
+    echo "ERROR: filogic.mk not found: $FLMK"
+    exit 1
+fi
+
+if grep -qF "$MARKER" "$FLMK"; then
+    echo "Tenda BE12 Pro board already integrated, skipping."
+else
+    {
+        echo
+        echo "$MARKER"
+        cat "$BOARD_MK"
+        echo "# <<< TENDA-PORT be12-pro <<<"
+    } >> "$FLMK"
+
+    echo "✓ Tenda BE12 Pro board definition integrated successfully."
+fi
+
+# ==========================================
+# LuCI RPC backend
+# ==========================================
 
 echo "[2] Patching LuCI RPC backend..."
 
@@ -88,6 +124,9 @@ else:
     raise SystemExit("LuCI RPC end marker not found, aborting.")
 PY
 
+# ==========================================
+# ImmortalWrt packages
+# ==========================================
 
 echo "[3] Adding ImmortalWrt packages..."
 
@@ -113,21 +152,28 @@ mkdir -p files/usr/share/rpcd/acl.d
 
 cat > files/usr/share/rpcd/acl.d/luci-mod-status-autocore.json <<'EOF'
 {
-	"luci-mod-status-autocore": {
-		"description": "Grant access to autocore",
-		"read": {
-			"ubus": {
-				"luci": [ "getTempInfo" ]
-			}
-		}
-	}
+    "luci-mod-status-autocore": {
+        "description": "Grant access to autocore",
+        "read": {
+            "ubus": {
+                "luci": [ "getTempInfo" ]
+            }
+        }
+    }
 }
 EOF
 
+# ==========================================
+# Kernel tweaks
+# ==========================================
 
 echo "[4] Kernel tweak (mt76 / Tenda-BE12-Pro)..."
 
 #sed -i '/AUTOLOAD:=$(call AutoProbe,mt7915e)/a \  MODPARAMS.mt7915e:=wed_enable=Y' package/kernel/mt76/Makefile
+
+# ==========================================
+# LuCI theme Argon
+# ==========================================
 
 echo "[5] LuCI theme Argon..."
 
@@ -135,6 +181,10 @@ rm -rf package/luci-theme-argon package/luci-app-argon-config
 
 git clone --depth=1 https://github.com/jerrykuku/luci-theme-argon.git package/luci-theme-argon
 git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config.git package/luci-app-argon-config
+
+# ==========================================
+# Default WiFi
+# ==========================================
 
 echo "[6] Default WiFi"
 
@@ -153,12 +203,16 @@ uci set wireless.@wifi-iface[1].disabled='0'
 uci set wireless.@wifi-iface[1].encryption='none'
 uci set wireless.@wifi-iface[1].ssid="OpenWrt_5G"
 
-uci commit wireless 
+uci commit wireless
 
 exit 0
 EOF
 
 chmod +x files/etc/uci-defaults/99-default-settings
+
+# ==========================================
+# Cleanup
+# ==========================================
 
 #PATCH_FILE="$GITHUB_WORKSPACE/Tenda-BE12-Pro/diff.patch"
 #patch -p1 < "$PATCH_FILE"
