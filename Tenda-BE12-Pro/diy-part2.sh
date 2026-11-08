@@ -299,4 +299,6 @@ rm -f target/linux/mediatek/filogic/base-files/etc/board.d/02_network.orig
 rm -f config/Config-kernel.in.orig
 rm -f include/kernel-defaults.mk.orig
 
+cp $GITHUB_WORKSPACE/Tenda-BE12-Pro/Db.patch package/firmware/wireless-regdb/patches/
+
 echo "Done ✔"
