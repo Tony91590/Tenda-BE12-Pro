@@ -1,6 +1,6 @@
 --- a/target/linux/mediatek/filogic/base-files/etc/board.d/02_network
 +++ b/target/linux/mediatek/filogic/base-files/etc/board.d/02_network
-@@ -182,6 +182,9 @@ mediatek_setup_interfaces()
+@@ -170,6 +170,9 @@ mediatek_setup_interfaces()
  	yuncore,ax835)
  		ucidef_set_interfaces_lan_wan lan wan
  		;;
