@@ -279,8 +279,13 @@ uci set wireless.@wifi-iface[1].ssid="OpenWrt_5G"
 
 uci commit wireless
 
+uci set firewall.@defaults[0].flow_offloading='1'
+uci set firewall.@defaults[0].flow_offloading_hw='1'
+
+uci commit firewall
+
 # Add the MediaTek Filogic kernel modules repository if missing
-echo 'https://downloads.openwrt.org/releases/25.12.6/targets/mediatek/filogic/kmods/6.12.112-1-f0a7348f9cb959e1bf4d0447669b031e/packages.adb' >> /etc/apk/repositories.d/distfeeds.list
+echo 'https://downloads.openwrt.org/releases/25.12.5/targets/mediatek/filogic/kmods/6.12.94-1-5a6c1f71be683ae9980b15d3ce73e24d/packages.adb' >> /etc/apk/repositories.d/distfeeds.list
 
 exit 0
 EOF
