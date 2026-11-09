@@ -165,6 +165,6 @@ chmod +x files/etc/uci-defaults/99-default-settings
 
 rm -f feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js.orig
 
-cp $GITHUB_WORKSPACE/Tenda-BE12-Pro/Db.patch package/firmware/wireless-regdb/patches/
+cp $GITHUB_WORKSPACE/Tenda-BE12-Pro/db.patch package/firmware/wireless-regdb/patches/
 
 echo "Done ✔"
