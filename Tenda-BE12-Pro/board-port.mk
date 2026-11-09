@@ -1,3 +1,5 @@
+############################ Tenda BE12 Pro ############################
+
 define Build/tenda-mkdualimageheader
 	printf '%b' "\x47\x6f\x64\x31\x00\x00\x00\x00" >"$@.new"
 	gzip -c "$@" | tail -c8 >>"$@.new"
