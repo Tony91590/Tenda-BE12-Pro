@@ -306,4 +306,13 @@ rm -f include/kernel-defaults.mk.orig
 
 cp $GITHUB_WORKSPACE/Tenda-BE12-Pro/db.patch package/firmware/wireless-regdb/patches/
 
+rm -rf package/network/services/odhcpd
+
+git clone https://github.com/openwrt/openwrt.git tmp_imm &&
+cd tmp_imm &&
+git checkout 3d5a743f1f0cb77aed8ed63b2f9aa75700b4322c &&
+cd .. &&
+cp -r tmp_imm/package/network/services/odhcpd package/network/services/ &&
+rm -rf tmp_imm
+
 echo "Done ✔"
