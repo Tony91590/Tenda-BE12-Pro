@@ -798,7 +798,7 @@ index 00000000000..0d25359874a
  		fi
  		;;
  	esac
-@@ -79,45 +77,11 @@ start_service() {
+@@ -79,45 +77,6 @@ start_service() {
  	sysctl -w net.ipv4.tcp_congestion_control="$tcpcca" >"/dev/null"
  
  	/etc/init.d/firewall restart >"/dev/null" 2>&1
@@ -841,11 +841,6 @@ index 00000000000..0d25359874a
 -else
 -    echo "Invalid IPv4 address: $fastpath_mh_eth_hnat_ap"
 -fi
-+
-+	sed -i '/prefer-family/d' /etc/wgetrc
-+	echo "prefer-family = IPv4" >> /etc/wgetrc
-+	echo 4096 > /proc/sys/vm/min_free_kbytes
-+	echo 3 > /proc/sys/vm/drop_caches
  }
  
  reload_service() {
