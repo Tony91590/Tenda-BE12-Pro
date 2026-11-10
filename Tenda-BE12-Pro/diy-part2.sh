@@ -296,23 +296,12 @@ chmod +x files/etc/uci-defaults/99-default-settings
 # Cleanup
 # ==========================================
 
-#DIFF_PATCH="$PATCH_DIR/diff.patch"
-#patch -p1 < "$DIFF_PATCH"
+DIFF_PATCH="$PATCH_DIR/diff.patch"
+patch -p1 < "$DIFF_PATCH"
 
 rm -f feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js.orig
 rm -f target/linux/mediatek/filogic/base-files/etc/board.d/02_network.orig
 rm -f config/Config-kernel.in.orig
 rm -f include/kernel-defaults.mk.orig
-
-rm -rf package/mtk/applications/luci-app-turboacc-mtk
-
-git clone https://github.com/kalicyh/ImmortalWrt-tenda_be12-pro.git tmp_imm &&
-cd tmp_imm &&
-git checkout 1b9eb1188963b7a0ef899de085fd1fde3685aefa &&
-cd .. &&
-cp -r tmp_imm/package/mtk/applications/luci-app-turboacc-mtk package/mtk/applications/ &&
-rm -rf tmp_imm
-
-cp $GITHUB_WORKSPACE/Tenda-BE12-Pro/db.patch package/firmware/wireless-regdb/patches/
 
 echo "Done ✔"
