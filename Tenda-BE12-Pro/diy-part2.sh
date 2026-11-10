@@ -303,5 +303,7 @@ rm -f feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/statu
 rm -f target/linux/mediatek/filogic/base-files/etc/board.d/02_network.orig
 rm -f config/Config-kernel.in.orig
 rm -f include/kernel-defaults.mk.orig
+rm -f package/network/config/wifi-scripts/files/lib/netifd/wireless-device.uc.orig
+rm -f package/network/config/wifi-scripts/files/lib/netifd/wireless.uc.orig
 
 echo "Done ✔"
