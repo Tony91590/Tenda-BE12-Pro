@@ -27,7 +27,7 @@
  		fi
  		;;
  	esac
-@@ -75,45 +73,7 @@ start_service() {
+@@ -75,50 +75,6 @@ start_service() {
  
  	uci -q commit "firewall"
  	/etc/init.d/firewall restart >"/dev/null" 2>&1
@@ -70,10 +70,14 @@
 -else
 -    echo "Invalid IPv4 address: $fastpath_mh_eth_hnat_ap"
 -fi
-+
- 	sed -i '/prefer-family/d' /etc/wgetrc
- 	echo "prefer-family = IPv4" >> /etc/wgetrc
- 	echo 4096 > /proc/sys/vm/min_free_kbytes
+-	sed -i '/prefer-family/d' /etc/wgetrc
+-	echo "prefer-family = IPv4" >> /etc/wgetrc
+-	echo 4096 > /proc/sys/vm/min_free_kbytes
+-	echo 3 > /proc/sys/vm/drop_caches
+-	
+ }
+ 
+ reload_service() {
 --- a/package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc
 +++ b/package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc
 @@ -7,9 +7,7 @@ if [ -e "/lib/modules/$kernel_ver/mtkhnat.ko" ]; then
