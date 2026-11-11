@@ -32,6 +32,7 @@ env:
 permissions:
   contents: write
 
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -44,10 +45,13 @@ jobs:
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
-        sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
+        # Nettoyage sans toucher aux dépôts Ubuntu
+        sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
 
+        # Mise à jour des dépôts
         sudo apt-get -qq update
 
+        # Dépendances OpenWrt
         sudo apt-get -qq install -y \
           build-essential \
           clang \
@@ -86,7 +90,7 @@ jobs:
         sudo timedatectl set-timezone "$TZ"
         sudo mkdir -p /workdir
         sudo chown "$USER:$GROUPS" /workdir
-      
+
     - name: Download firmware source code
       working-directory: /workdir
       run: |
