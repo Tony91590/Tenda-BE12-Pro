@@ -296,23 +296,24 @@ chmod +x files/etc/uci-defaults/99-default-settings
 # Cleanup
 # ==========================================
 
-#DIFF_PATCH="$PATCH_DIR/diff.patch"
-#patch -p1 < "$DIFF_PATCH"
+DIFF_PATCH="$PATCH_DIR/diff.patch"
+patch -p1 < "$DIFF_PATCH"
 
 rm -f feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js.orig
 rm -f target/linux/mediatek/filogic/base-files/etc/board.d/02_network.orig
 rm -f config/Config-kernel.in.orig
 rm -f include/kernel-defaults.mk.orig
+rm -f package/network/services/odhcpd/Makefile.orig
 
 cp $GITHUB_WORKSPACE/Tenda-BE12-Pro/db.patch package/firmware/wireless-regdb/patches/
 
-rm -rf package/network/services/odhcpd
+#rm -rf package/network/services/odhcpd
 
-git clone https://github.com/openwrt/openwrt.git tmp_imm &&
-cd tmp_imm &&
-git checkout 3d5a743f1f0cb77aed8ed63b2f9aa75700b4322c &&
-cd .. &&
-cp -r tmp_imm/package/network/services/odhcpd package/network/services/ &&
-rm -rf tmp_imm
+#git clone https://github.com/openwrt/openwrt.git tmp_imm &&
+#cd tmp_imm &&
+#git checkout 3d5a743f1f0cb77aed8ed63b2f9aa75700b4322c &&
+#cd .. &&
+#cp -r tmp_imm/package/network/services/odhcpd package/network/services/ &&
+#rm -rf tmp_imm
 
 echo "Done ✔"
