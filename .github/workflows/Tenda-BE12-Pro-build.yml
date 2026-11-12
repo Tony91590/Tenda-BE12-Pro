@@ -17,9 +17,9 @@ on:
     - cron: 0 16 * * *
 
 env:
-  REPO_URL: https://github.com/openwrt/openwrt
-  REPO_BRANCH: main
-  REPO_COMMIT: f0a60eee2fe051741c643ea6118718aae1ef17fb
+  REPO_URL: https://github.com/Tony91590/ImmortalWrt-tenda_be12-pro
+  REPO_BRANCH: proto
+  REPO_COMMIT: 
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: Tenda-BE12-Pro/.config
   DIY_P1_SH: Tenda-BE12-Pro/diy-part1.sh
