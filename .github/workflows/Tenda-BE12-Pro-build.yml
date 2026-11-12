@@ -59,7 +59,6 @@ jobs:
           g++-multilib \
           gettext \
           git \
-          gnu \
           libncurses-dev \
           libssl-dev \
           python3-setuptools \
