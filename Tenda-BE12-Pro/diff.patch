@@ -1,14 +1,29 @@
-From 818d393824b13c0019c14d02e0485b6b27358276 Mon Sep 17 00:00:00 2001
+From 1169cc32e8a5c55a6af3f2068c5bc485a847eec2 Mon Sep 17 00:00:00 2001
 From: Tony91590 <91764010+Tony91590@users.noreply.github.com>
-Date: Thu, 12 Nov 2026 12:18:39 +0100
-Subject: [PATCH] Update print statement from 'Hello' to 'Goodbye'
+Date: Thu, 12 Nov 2026 03:11:15 +0100
+Subject: [PATCH] Simplify fullcone configuration in turboacc
 
 ---
- .../htdocs/luci-static/resources/view/turboacc.js         | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ .../luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc    | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff --git a/package/mtk/applications/luci-app-turboacc-mtk/htdocs/luci-static/resources/view/turboacc.js b/package/mtk/applications/luci-app-turboacc-mtk/htdocs/luci-static/resources/view/turboacc.js
-index 696ee2320b..4e4077391e 100644
+diff --git a/package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc b/package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc
+index 0aa5e7769c..3156bab9af 100644
+--- a/package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc
++++ b/package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc
+@@ -33,11 +33,7 @@ else
+ 	uci -q set "turboacc.config.fastpath"="none"
+ fi
+ 
+-if has_module_file "xt_FULLCONENAT"; then
+-	uci -q set "turboacc.config.fullcone"="1"
+-else
+-	uci -q set "turboacc.config.fullcone"="2"
+-fi
++uci -q set "turboacc.config.fullcone"="2"
+ 
+ uci -q commit "turboacc"
+ 
 --- a/package/mtk/applications/luci-app-turboacc-mtk/htdocs/luci-static/resources/view/turboacc.js
 +++ b/package/mtk/applications/luci-app-turboacc-mtk/htdocs/luci-static/resources/view/turboacc.js
 @@ -1023,9 +1023,9 @@ function buildForm(features, config) {
