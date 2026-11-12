@@ -20,6 +20,8 @@
 #cp -r tmp_imm/package/mtk/applications/luci-app-turboacc-mtk package/mtk/applications/ &&
 #rm -rf tmp_imm
 
+sed -i 's/\r$//' package/mtk/applications/luci-app-turboacc-mtk/htdocs/luci-static/resources/view/turboacc.js
+
 sed -i 's/default-settings-chn/default-settings/g' include/target.mk
 
 # Apply custom diff patch
