@@ -14,22 +14,21 @@ on:
   repository_dispatch:
   workflow_dispatch:
   schedule:
-    - cron: '0 16 * * *'
+    - cron: 0 16 * * *
 
 env:
   REPO_URL: https://github.com/openwrt/openwrt
   REPO_BRANCH: main
-  REPO_COMMIT: 'f0a60eee2fe051741c643ea6118718aae1ef17fb'
+  REPO_COMMIT: 
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: Tenda-BE12-Pro/.config
   DIY_P1_SH: Tenda-BE12-Pro/diy-part1.sh
   DIY_P2_SH: Tenda-BE12-Pro/diy-part2.sh
-  FORCE_UNSAFE_CONFIGURE: '1'
-  UPLOAD_FIRMWARE: 'true'
-  UPLOAD_RELEASE: 'true'
-  UPLOAD_PACKAGES: 'true'
+  UPLOAD_FIRMWARE: true
+  UPLOAD_RELEASE: true
+  UPLOAD_PACKAGES: true
   TZ: Europe/Paris
-
+  
 permissions:
   contents: write
 
@@ -37,222 +36,158 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    container:
-      image: ubuntu:22.04
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
+    - name: Branche projet
+      uses: actions/checkout@main
 
-      - name: Initialiser le conteneur Ubuntu 22.04
-        env:
-          DEBIAN_FRONTEND: noninteractive
-        run: |
-          set -e
+    - name: Initialize the compilation environment
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
 
-          ln -sf /usr/share/zoneinfo/$TZ /etc/localtime
-          echo "$TZ" > /etc/timezone
+        sudo apt-get -qq update
 
-          apt-get update -y
-          apt-get full-upgrade -y
+        sudo apt-get -qq install -y \
+          build-essential \
+          clang \
+          flex \
+          bison \
+          g++ \
+          gawk \
+          gcc-multilib \
+          g++-multilib \
+          gettext \
+          git \
+          libncurses-dev \
+          libssl-dev \
+          python3-setuptools \
+          rsync \
+          swig \
+          unzip \
+          zlib1g-dev \
+          file \
+          wget \
+          curl \
+          subversion \
+          time \
+          xsltproc \
+          libelf-dev \
+          liblzma-dev \
+          libxml-parser-perl \
+          libtool \
+          autopoint \
+          pkg-config \
+          ca-certificates
 
-          
-          apt-get update
+        sudo apt-get -qq autoremove --purge -y
+        sudo apt-get -qq clean
 
-          apt-get install -y \
-          ack antlr3 asciidoc autoconf automake autopoint binutils bison \
-          build-essential bzip2 ccache cmake cpio curl device-tree-compiler \
-          fastjar flex gawk gettext gcc-multilib g++-multilib git gperf \
-          haveged help2man intltool libc6-dev-i386 libelf-dev libglib2.0-dev \
-          libgmp3-dev libltdl-dev vpnc libmpc-dev libmpfr-dev \
-          libncurses5-dev libncursesw5-dev libreadline-dev libssl-dev libtool \
-          lrzsz aria2 lib32gcc-s1 mkisofs msmtp nano ninja-build \
-          p7zip p7zip-full patch pkgconf python2.7 python3 python3-pip \
-          libpython3-dev qemu-utils rdate rsync scons squashfs-tools \
-          subversion swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd \
-          zlib1g-dev libfuse-dev zstd
+        sudo timedatectl set-timezone "$TZ"
+        sudo mkdir -p /workdir
+        sudo chown "$USER:$GROUPS" /workdir
 
-          mkdir -p /workdir
-          chmod 777 /workdir
+    - name: Download firmware source code
+      working-directory: /workdir
+      run: |
+        df -hT $PWD
+        git clone $REPO_URL -b $REPO_BRANCH openwrt
+        cd openwrt
+        
+        if [ -n "$REPO_COMMIT" ]; then
+          echo "Checkout commit $REPO_COMMIT"
+          git checkout "$REPO_COMMIT"
+        else
+          echo "Using branch $REPO_BRANCH"
+        fi
+        
+        ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
+         
+    - name: Load-feeds.conf.default & DIY_P1_SH
+      run: |
+        [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
+        chmod +x $DIY_P1_SH
+        cd openwrt
+        $GITHUB_WORKSPACE/$DIY_P1_SH
+        
+    - name: Update & install feeds
+      run: |
+        cd openwrt
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
+      
+    - name: Load-config & DIY_P2_SH
+      run: |
+        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
+        chmod +x $DIY_P2_SH
+        cd openwrt
+        $GITHUB_WORKSPACE/$DIY_P2_SH
+        
+    - name: Download the installation package
+      id: package
+      run: |
+        cd openwrt
+        make defconfig
+        make download -j$(nproc)
+        find dl -size -1024c -exec ls -l {} \;
+        find dl -size -1024c -exec rm -f {} \;
+        
+    - name: Compile firmware
+      id: compile
+      run: |
+        cd openwrt
+        echo -e "$(nproc) thread compile"
+        make -j$(nproc) || make -j1 || make -j1 V=s
+        grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
+        [ -s DEVICE_NAME ] && echo "DEVICE_NAME=$(cat DEVICE_NAME)" >> $GITHUB_ENV
+        grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*TARGET_.*_(.*)_DEVICE_.*=y/\1/' > TARGET_NAME
+        [ -s TARGET_NAME ] && echo "TARGET_NAME=$(cat TARGET_NAME)" >> $GITHUB_ENV
+        echo "FILE_DATE=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_ENV
+        echo "status=success" >> $GITHUB_OUTPUT
+        
+    - name: View disk usage
+      if: (!cancelled())
+      run: df -hT
+    
+    - name: Upload packages
+      uses: actions/upload-artifact@main
+      if: steps.compile.outputs.status == 'success' && env.UPLOAD_PACKAGES == 'true'
+      with:
+        name: OpenWrt_packages-${{ env.FILE_DATE }}
+        path: openwrt/bin/packages/
 
-          echo "===== Ubuntu ====="
-          cat /etc/os-release
+    - name: Organize files
+      id: organize
+      if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
+      run: | 
+        cd openwrt/bin/targets/*/*
+        rm -rf packages
+        echo "FIRMWARE=$PWD" >> $GITHUB_ENV
+        echo "status=success" >> $GITHUB_OUTPUT
+    
+    - name: Upload firmware to github
+      uses: actions/upload-artifact@main
+      if: steps.organize.outputs.status == 'success' && !cancelled()
+      with:
+        name: OpenWrt_firmware-${{ env.DEVICE_NAME }}-${{ env.FILE_DATE }}
+        path: ${{ env.FIRMWARE }}
 
-          echo "===== CPU ====="
-          nproc
-
-          echo "===== Disk ====="
-          df -hT
-
-      - name: Télécharger les sources
-        working-directory: /workdir
-        run: |
-          set -e
-
-          git clone "$REPO_URL" -b "$REPO_BRANCH" openwrt
-          cd openwrt
-
-          if [ -n "$REPO_COMMIT" ]; then
-            git checkout "$REPO_COMMIT"
-          fi
-
-          ln -sfn /workdir/openwrt "$GITHUB_WORKSPACE/openwrt"
-
-      - name: Charger feeds.conf.default et DIY P1
-        run: |
-          set -e
-
-          if [ -f "$FEEDS_CONF" ]; then
-            cp "$FEEDS_CONF" openwrt/feeds.conf.default
-          fi
-
-          chmod +x "$DIY_P1_SH"
-
-          cd openwrt
-          "$GITHUB_WORKSPACE/$DIY_P1_SH"
-
-      - name: Mettre à jour et installer les feeds
-        run: |
-          set -e
-          cd openwrt
-
-          ./scripts/feeds update -a
-          ./scripts/feeds install -a
-
-      - name: Charger la configuration et DIY P2
-        run: |
-          set -e
-
-          if [ -f "$CONFIG_FILE" ]; then
-            cp "$CONFIG_FILE" openwrt/.config
-          else
-            echo "Configuration absente : $CONFIG_FILE"
-            exit 1
-          fi
-
-          chmod +x "$DIY_P2_SH"
-
-          cd openwrt
-          "$GITHUB_WORKSPACE/$DIY_P2_SH"
-
-      - name: Préparer la configuration
-        run: |
-          set -e
-          cd openwrt
-
-          make defconfig
-
-          echo "===== Cibles configurées ====="
-          grep '^CONFIG_TARGET.*DEVICE.*=y' .config || true
-
-      - name: Télécharger les sources nécessaires
-        run: |
-          set -e
-          cd openwrt
-
-          make download -j"$(nproc)"
-
-          find dl -size -1024c -exec ls -l {} \;
-          find dl -size -1024c -exec rm -f {} \;
-
-      - name: Compiler OpenWrt
-        id: compile
-        run: |
-          set -e
-          cd openwrt
-
-          export FORCE_UNSAFE_CONFIGURE=1
-
-          echo "Compilation avec $(nproc) threads"
-
-          if ! make -j"$(nproc)"; then
-            echo "Échec compilation parallèle, nouvelle tentative"
-            if ! make -j1; then
-              echo "Échec, affichage détaillé"
-              make -j1 V=s
-            fi
-          fi
-
-          test -d bin/targets
-
-          grep '^CONFIG_TARGET.*DEVICE.*=y' .config \
-            | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
-
-          if [ ! -s DEVICE_NAME ]; then
-            echo "Impossible de déterminer DEVICE_NAME"
-            exit 1
-          fi
-
-          echo "DEVICE_NAME=$(cat DEVICE_NAME)" >> "$GITHUB_ENV"
-          echo "FILE_DATE=$(date +'%Y.%m.%d-%H%M')" >> "$GITHUB_ENV"
-          echo "status=success" >> "$GITHUB_OUTPUT"
-
-      - name: Vérifier l'espace disque
-        if: always()
-        run: df -hT
-
-      - name: Envoyer les paquets
-        uses: actions/upload-artifact@v6
-        if: steps.compile.outputs.status == 'success' && env.UPLOAD_PACKAGES == 'true'
-        with:
-          name: OpenWrt_packages-${{ env.FILE_DATE }}
-          path: openwrt/bin/packages/
-          if-no-files-found: warn
-
-      - name: Préparer les firmwares
-        id: organize
-        if: steps.compile.outputs.status == 'success' && env.UPLOAD_FIRMWARE == 'true' && !cancelled()
-        run: |
-          set -e
-
-          TARGET_DIR="$(find openwrt/bin/targets \
-            -mindepth 2 -maxdepth 2 -type d | head -n 1)"
-
-          if [ -z "$TARGET_DIR" ]; then
-            echo "Aucun répertoire firmware trouvé"
-            exit 1
-          fi
-
-          rm -rf "$TARGET_DIR/packages"
-
-          echo "FIRMWARE=$GITHUB_WORKSPACE/$TARGET_DIR" >> "$GITHUB_ENV"
-          echo "status=success" >> "$GITHUB_OUTPUT"
-
-      - name: Envoyer les firmwares
-        uses: actions/upload-artifact@v6
-        if: steps.organize.outputs.status == 'success' && !cancelled()
-        with:
-          name: OpenWrt_firmware-${{ env.DEVICE_NAME }}-${{ env.FILE_DATE }}
-          path: ${{ env.FIRMWARE }}/
-          if-no-files-found: error
-
-      - name: Générer la release
-        id: tag
-        if: steps.organize.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
-        run: |
-          set -e
-
-          echo "release_tag=${FILE_DATE}-Tenda-BE12-Pro" >> "$GITHUB_OUTPUT"
-
-          cat > release.txt << 'EOF'
-          Firmware ImmortalWrt compilé avec GitHub Actions.
-
-          Appareil : Tenda BE12 Pro
-          Adresse par défaut : 192.168.1.1
-
-          Vérifiez la compatibilité et la méthode de flash
-          avant toute installation.
-          EOF
-
-          echo "status=success" >> "$GITHUB_OUTPUT"
-
-      - name: Publier la release GitHub
-        uses: softprops/action-gh-release@v3
-        if: steps.tag.outputs.status == 'success' && !cancelled()
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.tag.outputs.release_tag }}
-          name: ${{ steps.tag.outputs.release_tag }}
-          body_path: release.txt
-          files: ${{ env.FIRMWARE }}/*
+    - name: Generate release tags
+      id: tag
+      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+      run: |
+        echo "release_tag=$(date +"%Y.%m.%d-%H%M")-Tenda-BE12-Pro">> $GITHUB_OUTPUT
+        touch release.txt
+        echo "The default IP address is 192.168.1.1" >> release.txt
+        echo "📥 Firmware download" >> release.txt
+        echo "status=success" >> $GITHUB_OUTPUT
+        
+    - name: Publish to release
+      uses: softprops/action-gh-release@v3
+      if: steps.tag.outputs.status == 'success' && !cancelled()
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.tag.outputs.release_tag }}
+        body_path: release.txt
+        files: ${{ env.FIRMWARE }}/*
