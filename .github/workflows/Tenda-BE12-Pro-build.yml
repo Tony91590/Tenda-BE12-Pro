@@ -32,7 +32,6 @@ env:
 permissions:
   contents: write
 
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -45,13 +44,10 @@ jobs:
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
-        # Nettoyage sans toucher aux dépôts Ubuntu
         sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
 
-        # Mise à jour des dépôts
         sudo apt-get -qq update
 
-        # Dépendances OpenWrt
         sudo apt-get -qq install -y \
           build-essential \
           clang \
