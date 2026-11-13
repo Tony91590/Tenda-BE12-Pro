@@ -1,15 +1,32 @@
+From 60c9f7fbcea9aad707d57f1d645f71deea8a7bb0 Mon Sep 17 00:00:00 2001
+From: Tony91590 <91764010+Tony91590@users.noreply.github.com>
+Date: Fri, 13 Nov 2026 12:31:19 +0100
+Subject: [PATCH] Refactor turboacc init script and clean up code
+
+Removed redundant echo commands for hook_toggle and updated hnat_setting values. Cleaned up commented-out code related to interface detection and configuration.
+---
+ .../root/etc/init.d/turboacc                  | 62 +++----------------
+ 1 file changed, 10 insertions(+), 52 deletions(-)
+
+diff --git a/package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc b/package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc
+index 4cf77ce7ace..dc8af40a370 100755
 --- a/package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc
 +++ b/package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc
-@@ -21,7 +21,7 @@ start_service() {
+@@ -21,8 +21,6 @@ start_service() {
  		rmmod "shortcut_fe_cm" 2>"/dev/null"
  	fi
  
 -	echo 0 > /sys/kernel/debug/hnat/hook_toggle
-+        echo 0 > /sys/kernel/debug/hnat/hook_toggle
-         echo 1 > /sys/kernel/debug/hnat/hook_toggle
+-        echo 1 > /sys/kernel/debug/hnat/hook_toggle
  	if [ "$fastpath" != "mediatek_hnat" ] && lsmod | grep -q "mtkhnat"; then
  		echo "0" > "/sys/kernel/debug/hnat/hook_toggle" 2>"/dev/null"
-@@ -52,15 +52,13 @@ start_service() {
+ 	fi
+@@ -49,16 +47,18 @@ start_service() {
+ 		local hnat_path="/sys/kernel/debug/hnat"
+ 
+ 		config_get_bool "fastpath_mh_eth_hnat" "config" "fastpath_mh_eth_hnat" "1"
++		echo 1 > "$hnat_path/hook_toggle"
++		echo 0 > "$hnat_path/hook_toggle"
  		echo "$fastpath_mh_eth_hnat" > "$hnat_path/hook_toggle"
  
  		if [ "$fastpath_mh_eth_hnat" -eq "1" ]; then
@@ -22,12 +39,10 @@
  			config_get "fastpath_mh_eth_hnat_bind_rate" "config" "fastpath_mh_eth_hnat_bind_rate" "30"
 -			echo "7 $fastpath_mh_eth_hnat_bind_rate" > "$hnat_path/hnat_setting"
 +			echo "11 $fastpath_mh_eth_hnat_bind_rate" > "$hnat_path/hnat_setting"
--
--			config_get "fastpath_mh_eth_hnat_ap" "config" "fastpath_mh_eth_hnat_ap" ""
+ 
+ 			config_get "fastpath_mh_eth_hnat_ap" "config" "fastpath_mh_eth_hnat_ap" ""
  		fi
- 		;;
- 	esac
-@@ -75,50 +75,6 @@ start_service() {
+@@ -75,50 +75,11 @@ start_service() {
  
  	uci -q commit "firewall"
  	/etc/init.d/firewall restart >"/dev/null" 2>&1
@@ -75,9 +90,26 @@
 -	echo 4096 > /proc/sys/vm/min_free_kbytes
 -	echo 3 > /proc/sys/vm/drop_caches
 -	
++
++    echo 4096 > /proc/sys/vm/min_free_kbytes
++    echo 3 > /proc/sys/vm/drop_caches
++    sed -i '/prefer-family/d' /etc/wgetrc
++    echo "prefer-family = IPv4" >> /etc/wgetrc
  }
  
  reload_service() {
+@@ -126,10 +87,7 @@ reload_service() {
+ }
+ 
+ stop_service() {
+-	ifconfig rai0 down
+-	ifconfig ra0 down
+-        echo 0 > /sys/kernel/debug/hnat/hook_toggle 
+-	stop
++        stop
+ }
+ 
+ service_triggers() {
 --- a/package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc
 +++ b/package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc
 @@ -7,9 +7,7 @@ if [ -e "/lib/modules/$kernel_ver/mtkhnat.ko" ]; then
