@@ -31,6 +31,7 @@ else
     echo "WARNING: diff.patch not found: $PATCH_FILE"
 fi
 
+rm -f package/mtk/applications/luci-app-turboacc-mtk/Makefile.orig
 rm -f .github/workflows/runtime-tests.yml.orig
 rm -f RUNTIME-STABILITY.md.orig
 rm -f package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc.orig
