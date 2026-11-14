@@ -34,6 +34,18 @@
  	if [ -w "/proc/sys/net/netfilter/nf_conntrack_nat_mode" ]; then
  		echo "$fullcone" >"/proc/sys/net/netfilter/nf_conntrack_nat_mode" 2>/dev/null || \
  			logger -t turboacc "WARNING: failed to write nf_conntrack_nat_mode=$fullcone"
+@@ -216,6 +208,11 @@ start_service() {
+ 	fi
+ 
+ 	logger -t turboacc "started (fastpath=$fastpath fullcone=$fullcone tcpcca=$tcpcca)"
++
++	sed -i '/prefer-family/d' /etc/wgetrc
++	echo "prefer-family = IPv4" >> /etc/wgetrc
++	echo 4096 > /proc/sys/vm/min_free_kbytes
++	echo 3 > /proc/sys/vm/drop_caches
+ }
+ 
+ reload_service() {
 --- a/package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc
 +++ b/package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc
 @@ -33,11 +33,7 @@ else
