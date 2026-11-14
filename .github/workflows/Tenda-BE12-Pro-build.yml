@@ -18,7 +18,7 @@ on:
 
 env:
   REPO_URL: https://github.com/Tony91590/m798x-tdbe
-  REPO_BRANCH: fix/runtime-stability-and-wireless-diagnostics
+  REPO_BRANCH: merge
   REPO_COMMIT: ''
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: Tenda-BE12-Pro/.config
