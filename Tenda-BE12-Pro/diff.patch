@@ -87,17 +87,27 @@
 -fi
 -	sed -i '/prefer-family/d' /etc/wgetrc
 -	echo "prefer-family = IPv4" >> /etc/wgetrc
--	echo 4096 > /proc/sys/vm/min_free_kbytes
--	echo 3 > /proc/sys/vm/drop_caches
--	
 +
-+    echo 4096 > /proc/sys/vm/min_free_kbytes
-+    echo 3 > /proc/sys/vm/drop_caches
-+    sed -i '/prefer-family/d' /etc/wgetrc
-+    echo "prefer-family = IPv4" >> /etc/wgetrc
+ 	echo 4096 > /proc/sys/vm/min_free_kbytes
+ 	echo 3 > /proc/sys/vm/drop_caches
+-	
++	sed -i '/prefer-family/d' /etc/wgetrc
++	echo "prefer-family = IPv4" >> /etc/wgetrc
  }
  
  reload_service() {
+@@ -126,10 +85,7 @@ reload_service() {
+ }
+ 
+ stop_service() {
+-	ifconfig rai0 down
+-	ifconfig ra0 down
+-        echo 0 > /sys/kernel/debug/hnat/hook_toggle 
+-	stop
++        stop
+ }
+ 
+ service_triggers() {
 @@ -126,10 +85,7 @@ reload_service() {
  }
  
