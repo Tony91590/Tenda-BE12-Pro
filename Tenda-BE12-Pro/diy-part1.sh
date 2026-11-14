@@ -17,10 +17,3 @@
 #echo 'src-git helloworld https://github.com/fw876/helloworld' >>feeds.conf.default
 #echo 'src-git passwall https://github.com/xiaorouji/openwrt-passwall' >>feeds.conf.default
 #echo 'src-git messense https://github.com/messense/aliyundrive-webdav' >>feeds.conf.default
-
-cat > feeds.conf.default << 'EOF'
-src-git packages https://github.com/immortalwrt/packages.git;openwrt-24.10
-src-git luci https://github.com/immortalwrt/luci.git;openwrt-24.10
-src-git routing https://github.com/openwrt/routing.git;openwrt-24.10
-src-git telephony https://github.com/openwrt/telephony.git;openwrt-24.10
-EOF
