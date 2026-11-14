@@ -1189,6 +1189,16 @@ index 00000000000..0d25359874a
  		add_list system.ntp.server='time1.google.com'
  		add_list system.ntp.server='time.cloudflare.com'
  		add_list system.ntp.server='pool.ntp.org'
+--- a/package/mtk/applications/luci-app-turboacc-mtk/Makefile
++++ b/package/mtk/applications/luci-app-turboacc-mtk/Makefile
+@@ -18,7 +18,6 @@ LUCI_DEPENDS:= \
+ 	+kmod-nft-socket +kmod-nft-tproxy +kmod-nft-nat \
+ 	+kmod-ipt-nat6 +kmod-ipt-nat \
+ 	+kmod-ipt-physdev \
+-	+kmod-ipt-fullconenat \
+ 	@!PACKAGE_luci-app-turboacc
+ LUCI_PKGARCH:=all
+    
 --- a/package/base-files/files/etc/shadow
 +++ b/package/base-files/files/etc/shadow
 @@ -1,4 +1,4 @@
