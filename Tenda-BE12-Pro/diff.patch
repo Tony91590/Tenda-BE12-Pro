@@ -1172,7 +1172,7 @@ index 00000000000..0d25359874a
  				*) ipad=${ipaddr:-"192.168.$((addr_offset++)).1"} ;;
  			esac
  
-@@ -314,7 +314,7 @@ generate_static_system() {
+@@ -314,14 +314,14 @@ generate_static_system() {
  		set system.@system[-1].hostname='ImmortalWrt'
  		set system.@system[-1].timezone='UTC'
  		set system.@system[-1].ttylogin='0'
@@ -1181,6 +1181,14 @@ index 00000000000..0d25359874a
  		set system.@system[-1].urandom_seed='0'
  
  		delete system.ntp
+ 		set system.ntp='timeserver'
+ 		set system.ntp.enabled='1'
+ 		set system.ntp.enable_server='0'
+-		add_list system.ntp.server='time1.apple.com'
++		add_list system.ntp.server='time.apple.com'
+ 		add_list system.ntp.server='time1.google.com'
+ 		add_list system.ntp.server='time.cloudflare.com'
+ 		add_list system.ntp.server='pool.ntp.org'
 --- a/package/base-files/files/etc/shadow
 +++ b/package/base-files/files/etc/shadow
 @@ -1,4 +1,4 @@
