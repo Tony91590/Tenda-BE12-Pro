@@ -84,7 +84,15 @@
  				*) ipad=${ipaddr:-"192.168.$((addr_offset++)).1"} ;;
  			esac
  
-@@ -321,7 +321,7 @@ generate_static_system() {
+@@ -314,14 +314,14 @@ generate_static_system() {
+ 		set system.@system[-1].hostname='ImmortalWrt'
+ 		set system.@system[-1].timezone='UTC'
+ 		set system.@system[-1].ttylogin='0'
+-		set system.@system[-1].log_size='128'
++		set system.@system[-1].log_size='512'
+ 		set system.@system[-1].urandom_seed='0'
+ 
+ 		delete system.ntp
  		set system.ntp='timeserver'
  		set system.ntp.enabled='1'
  		set system.ntp.enable_server='0'
