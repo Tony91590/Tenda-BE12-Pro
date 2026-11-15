@@ -413,7 +413,7 @@
 +		add_list system.ntp.server='time.apple.com'
  		add_list system.ntp.server='time1.google.com'
  		add_list system.ntp.server='time.cloudflare.com'
- 		add_list system.ntp.server='pool.ntp.org
+ 		add_list system.ntp.server='pool.ntp.org'
 --- a/package/base-files/files/etc/shadow
 +++ b/package/base-files/files/etc/shadow
 @@ -1,4 +1,4 @@
