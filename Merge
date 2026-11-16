@@ -1,0 +1,11 @@
+# Supprimer le dossier actuel
+git rm -rf package/mtk/applications/luci-app-turboacc-mtk
+
+# Récupérer le dossier depuis l'autre branche
+git checkout tenda-be12-pro -- package/mtk/applications/luci-app-turboacc-mtk
+
+# Ajouter les modifications
+git add package/mtk/applications/luci-app-turboacc-mtk
+
+# Commit
+git commit -m "Replace turboacc-mtk with version from burn"
