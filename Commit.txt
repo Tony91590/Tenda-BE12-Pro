@@ -1,0 +1,13 @@
+git checkout merge
+
+git fetch origin
+
+curl -L "https://raw.githubusercontent.com/Tony91590/Tenda-BE12-Pro/refs/heads/perso-test/diff.patch" -o /tmp/diff.patch
+
+git apply --3way /tmp/diff.patch
+
+git add -A
+
+git commit -m "Apply perso-test diff patch"
+
+git push origin merge
