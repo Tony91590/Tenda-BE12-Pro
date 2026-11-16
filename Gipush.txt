@@ -1,0 +1,15 @@
+git fetch origin
+
+git checkout merge
+
+git reset --hard origin/merge
+
+git rm -rf package/mtk/applications/luci-app-turboacc-mtk
+
+git checkout origin/tenda-be12-pro -- package/mtk/applications/luci-app-turboacc-mtk
+
+git add -A package/mtk/applications/luci-app-turboacc-mtk
+
+git commit -m "Update turboacc from tenda-be12-pro"
+
+git push origin merge
