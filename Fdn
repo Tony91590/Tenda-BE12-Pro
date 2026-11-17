@@ -1,0 +1,37 @@
+
+#!/bin/sh
+
+# ==========================================
+# DNS FDN - OpenWrt 24.10
+# ns0.fdn.fr / ns1.fdn.fr
+# ==========================================
+
+# WAN IPv4
+uci set network.wan.peerdns='0'
+uci -q delete network.wan.dns
+uci add_list network.wan.dns='80.67.169.12'
+uci add_list network.wan.dns='80.67.169.40'
+
+# WAN IPv6
+uci set network.wan6.peerdns='0'
+uci -q delete network.wan6.dns
+uci add_list network.wan6.dns='2001:910:800::12'
+uci add_list network.wan6.dns='2001:910:800::40'
+
+# dnsmasq
+uci set dhcp.@dnsmasq[0].noresolv='1'
+uci -q delete dhcp.@dnsmasq[0].server
+
+uci add_list dhcp.@dnsmasq[0].server='80.67.169.12'
+uci add_list dhcp.@dnsmasq[0].server='80.67.169.40'
+uci add_list dhcp.@dnsmasq[0].server='2001:910:800::12'
+uci add_list dhcp.@dnsmasq[0].server='2001:910:800::40'
+
+# DNSSEC
+uci set dhcp.@dnsmasq[0].dnssec='1'
+uci set dhcp.@dnsmasq[0].dnsseccheckunsigned='0'
+
+uci commit network
+uci commit dhcp
+
+exit 0
