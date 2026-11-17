@@ -209,43 +209,6 @@ cat > files/usr/share/rpcd/acl.d/luci-mod-status-autocore.json <<'EOF'
 EOF
 
 # ==========================================
-# Kernel / MT76 / MT7996E / WED
-# ==========================================
-
-WED_PATCH="$PATCH_DIR/0125-mediatek-add-MT7987-WED-support-from-MediaTek-SDK.patch"
-
-echo "[4] Applying MediaTek MT7987 WED patch..."
-
-if [ ! -f "$WED_PATCH" ]; then
-    echo "ERROR: MT7987 WED patch not found: $WED_PATCH"
-    exit 1
-fi
-
-patch --batch -p1 < "$WED_PATCH"
-
-echo "✓ MediaTek MT7987 WED patch applied successfully."
-
-# ------------------------------------------
-# Enable WED for mt7996e
-# ------------------------------------------
-
-echo "[4.1] Enabling WED for mt7996e..."
-
-MT76_MAKEFILE="package/kernel/mt76/Makefile"
-
-if [ ! -f "$MT76_MAKEFILE" ]; then
-    echo "ERROR: mt76 Makefile not found: $MT76_MAKEFILE"
-    exit 1
-fi
-
-if grep -qF 'MODPARAMS.mt7996e:=wed_enable=Y' "$MT76_MAKEFILE"; then
-    echo "mt7996e WED already enabled, skipping."
-else
-    sed -i '/AUTOLOAD:=$(call AutoProbe,mt7996e)/a \  MODPARAMS.mt7996e:=wed_enable=Y' "$MT76_MAKEFILE"
-    echo "✓ mt7996e WED enabled successfully."
-fi
-
-# ==========================================
 # LuCI theme Argon
 # ==========================================
 
