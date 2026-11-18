@@ -1,3 +1,7 @@
+
+tenda-be12-pro.config
+
+
 uci set network.wan.peerdns='0'
 uci -q delete network.wan.dns
 uci add_list network.wan.dns='80.67.169.12'
