@@ -1,0 +1,101 @@
+From f0eae81baca39cf83b351fa62fc54c8041455ede Mon Sep 17 00:00:00 2001
+From: Rex Lu &lt;rex.lu@mediatek.com&gt;
+Date: Fri, 12 Jun 2026 13:55:18 +0800
+Subject: [PATCH] net: ethernet: mtk_wed: safely reallocate TXBM buffer pool after SER
+
+After WED TX BM reset, reallocate the TX buffer pool on WED v3
+and newer hardware.
+
+Without this patch, stale data in the TX buffer pool after SER
+may cause TX performance degradation.
+
+Wait for the TX free agent and TX BM to become idle before
+resetting the TX buffer manager.
+
+Allocate the replacement buffer pool before freeing the old one.
+If allocation fails, preserve the existing pool to avoid losing
+the available TX buffers.
+
+Signed-off-by: Rex Lu &lt;rex.lu@mediatek.com&gt;
+---
+
+diff --git a/drivers/net/ethernet/mediatek/mtk_wed.c b/drivers/net/ethernet/mediatek/mtk_wed.c
+--- a/drivers/net/ethernet/mediatek/mtk_wed.c
++++ b/drivers/net/ethernet/mediatek/mtk_wed.c
+@@ -814,6 +814,28 @@ free_pagelist:
+ }
+ 
++static int
++mtk_wed_replace_tx_buffer(struct mtk_wed_device *dev)
++{
++	typeof(dev->tx_buf_ring) old_ring = dev->tx_buf_ring;
++	typeof(dev->tx_buf_ring) new_ring;
++	int ret;
++
++	memset(&dev->tx_buf_ring, 0, sizeof(dev->tx_buf_ring));
++	ret = mtk_wed_tx_buffer_alloc(dev);
++	if (ret) {
++		mtk_wed_free_tx_buffer(dev);
++		dev->tx_buf_ring = old_ring;
++		return ret;
++	}
++
++	new_ring = dev->tx_buf_ring;
++	dev->tx_buf_ring = old_ring;
++	mtk_wed_free_tx_buffer(dev);
++	dev->tx_buf_ring = new_ring;
++
++	return 0;
++}
++
+ static int
+ mtk_wed_hwrro_buffer_alloc(struct mtk_wed_device *dev)
+ {
+@@ -2170,7 +2192,7 @@ mtk_wed_reset_dma(struct mtk_wed_device *dev)
+ {
+ 	bool busy = false;
+ 	u32 val;
+-	int i;
++	int i, ret;
+ 
+@@ -2182,21 +2204,34 @@ mtk_wed_reset_dma(struct mtk_wed_device *dev)
+ 	/* 3. reset WED TX BM */
+ 	wed_clr(dev, MTK_WED_CTRL, MTK_WED_CTRL_WED_TX_FREE_AGENT_EN);
++	mtk_wed_poll_busy(dev, MTK_WED_CTRL,
++			  MTK_WED_CTRL_WED_TX_FREE_AGENT_BUSY);
+ 
+ 	for (i = 0; i < 100; i++) {
+-		if (mtk_wed_is_v1(dev->hw))
++		if (mtk_wed_is_v1(dev->hw)) {
+ 			val = FIELD_GET(MTK_WED_TX_BM_INTF_TKFIFO_FDEP,
+ 					wed_r32(dev, MTK_WED_TX_BM_INTF));
+-		else
++			if (val == 0x40)
++				break;
++		} else {
+ 			val = FIELD_GET(MTK_WED_TX_TKID_INTF_TKFIFO_FDEP,
+ 					wed_r32(dev, MTK_WED_TX_TKID_INTF));
+-		if (val == 0x40)
+-			break;
++			if (val == 0x200)
++				break;
++		}
+ 	}
+ 
+ 	mtk_wed_reset(dev, MTK_WED_RESET_TX_FREE_AGENT);
+ 	wed_clr(dev, MTK_WED_CTRL, MTK_WED_CTRL_WED_TX_BM_EN);
+ 	mtk_wed_reset(dev, MTK_WED_RESET_TX_BM);
++	mtk_wed_poll_busy(dev, MTK_WED_CTRL,
++			  MTK_WED_CTRL_WED_TX_BM_BUSY);
++
++	if (mtk_wed_is_v3_or_greater(dev->hw)) {
++		ret = mtk_wed_replace_tx_buffer(dev);
++		if (ret)
++			dev_warn(dev->hw->dev,
++				 "failed to replace TX buffer pool: %d\n", ret);
++	}
+ 
+ 	/* 4. reset WED WPDMA tx */
+ 	mtk_wed_wpdma_tx_reset(dev);
+--
+2.45.2
