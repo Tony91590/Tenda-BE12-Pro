@@ -127,7 +127,7 @@ EOF
 
 echo "[4] Kernel tweak (mt76 / Tenda-BE12-Pro)..."
 
-#sed -i '/AUTOLOAD:=$(call AutoProbe,mt7915e)/a \  MODPARAMS.mt7915e:=wed_enable=Y' package/kernel/mt76/Makefile
+sed -i '/AUTOLOAD:=$(call AutoProbe,mt7996e)/a \  MODPARAMS.mt7996e:=wed_enable=Y' package/kernel/mt76/Makefile
 
 echo "[5] LuCI theme Argon..."
 
