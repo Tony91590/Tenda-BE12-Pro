@@ -9,8 +9,8 @@ Subject: [PATCH] luci-app-upnp: fix nftables UPnP rule parsing
 
 diff --git a/applications/luci-app-upnp/root/usr/share/rpcd/ucode/luci.upnp b/applications/luci-app-upnp/root/usr/share/rpcd/ucode/luci.upnp
 index f72b57b7ba84..c9c1f78c4f9b 100644
---- a/applications/luci-app-upnp/root/usr/share/rpcd/ucode/luci.upnp
-+++ b/applications/luci-app-upnp/root/usr/share/rpcd/ucode/luci.upnp
+--- a/feeds/luci/applications/luci-app-upnp/root/usr/share/rpcd/ucode/luci.upnp
++++ b/feeds/luci/applications/luci-app-upnp/root/usr/share/rpcd/ucode/luci.upnp
 @@ -67,7 +67,7 @@ const methods = {
  
  			if (nft) {
