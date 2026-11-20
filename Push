@@ -1,0 +1,25 @@
+git config user.name "Anthony LEFEBVRE"
+git config user.email "tony91590@hotmail.com"
+
+git fetch origin
+git switch patch-2
+git reset --hard 23f7227
+
+git commit --amend --reset-author -s \
+-m "luci-app-upnp: fix nftables UPnP rule parsing" \
+-m "The nftables output includes counter information between the destination port and the DNAT target.
+
+This caused the existing regular expression to fail to detect
+active UPnP port forwarding rules.
+
+Update the regular expression to handle the additional nftables
+fields and correctly extract the protocol, external port,
+internal IP address and internal port.
+
+This fixes the issue where active UPnP port mappings were not
+displayed in the LuCI interface."
+
+git log -1 --format=fuller
+git show --check --format=fuller HEAD
+
+git push --force-with-lease --force-if-includes origin HEAD:refs/heads/patch-2
