@@ -169,6 +169,7 @@ PATCH_FILE="$GITHUB_WORKSPACE/Tenda-BE12-Pro/diff.patch"
 patch -p1 < "$PATCH_FILE"
 
 rm -f feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js.orig
+rm -f feeds/luci/applications/luci-app-upnp/root/usr/share/rpcd/ucode/luci.upnp.orig
 
 cp $GITHUB_WORKSPACE/Tenda-BE12-Pro/db.patch package/firmware/wireless-regdb/patches/
 
