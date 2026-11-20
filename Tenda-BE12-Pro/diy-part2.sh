@@ -165,8 +165,8 @@ EOF
 
 chmod +x files/etc/uci-defaults/99-default-settings
 
-#PATCH_FILE="$GITHUB_WORKSPACE/Tenda-BE12-Pro/diff.patch"
-#patch -p1 < "$PATCH_FILE"
+PATCH_FILE="$GITHUB_WORKSPACE/Tenda-BE12-Pro/diff.patch"
+patch -p1 < "$PATCH_FILE"
 
 rm -f feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js.orig
 
