@@ -168,7 +168,7 @@ chmod +x files/etc/uci-defaults/99-default-settings
 PATCH_FILE="$GITHUB_WORKSPACE/Tenda-BE12-Pro/diff.patch"
 patch -p1 < "$PATCH_FILE"
 
-cp $GITHUB_WORKSPACE/Tenda-BE12-Pro/9999-diff2.patch package/kernel/mt76/patches/
+cp $GITHUB_WORKSPACE/Tenda-BE12-Pro/99-mt76-fix-missing-survey-noise-floor.patch package/kernel/mt76/patches/
 
 rm -f feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js.orig
 rm -f feeds/luci/applications/luci-app-upnp/root/usr/share/rpcd/ucode/luci.upnp.orig
