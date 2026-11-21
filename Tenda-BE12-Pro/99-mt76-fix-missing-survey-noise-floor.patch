@@ -16,7 +16,7 @@ index 3e6b39b32..a58b2c18e 100644
  	survey->time_rx = div_u64(state->cc_rx, 1000);
  	survey->time = div_u64(state->cc_active, 1000);
  	survey->noise = state->noise;
-+	
++
 +	if (!(survey->filled & SURVEY_INFO_NOISE_DBM)) {
 +		survey->noise = -95;
 +		survey->filled |= SURVEY_INFO_NOISE_DBM;
