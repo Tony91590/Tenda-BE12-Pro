@@ -1,17 +1,26 @@
+From 7c62b62d1e77a58242ac0cdcbaf762bd516a0c3c Mon Sep 17 00:00:00 2001
+From: Tony91590 <91764010+Tony91590@users.noreply.github.com>
+Date: Sat, 21 Nov 2026 16:16:39 +0100
+Subject: [PATCH] Add files via upload
+
+Signed-off-by: Tony91590 <91764010+Tony91590@users.noreply.github.com>
+---
+ mac80211.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/mac80211.c b/mac80211.c
+index 3e6b39b32..a58b2c18e 100644
 --- a/mac80211.c
 +++ b/mac80211.c
-@@ -1002,6 +1002,13 @@ int mt76_get_survey(struct ieee80211_hw *hw, int idx,
-        survey->time_busy = div_u64(state->cc_busy, 1000);
-        survey->time_rx = div_u64(state->cc_rx, 1000);
-        survey->time = div_u64(state->cc_active, 1000);
-
-+       survey->noise = state->noise;
-+       /* Provide fallback noise floor only when unavailable */
-+       if (!(survey->filled & SURVEY_INFO_NOISE_DBM)) {
+@@ -1279,6 +1279,11 @@ int mt76_get_survey(struct ieee80211_hw *hw, int idx,
+ 	survey->time_rx = div_u64(state->cc_rx, 1000);
+ 	survey->time = div_u64(state->cc_active, 1000);
+ 	survey->noise = state->noise;
++	
++	       if (!(survey->filled & SURVEY_INFO_NOISE_DBM)) {
 +               survey->noise = -95;
 +               survey->filled |= SURVEY_INFO_NOISE_DBM;
 +       }
-
-        spin_lock_bh(&dev->cc_lock);
-        survey->time_bss_rx = div_u64(state->cc_bss_rx, 1000);
-        survey->time_tx = div_u64(state->cc_tx, 1000);
+ 
+ 	spin_lock_bh(&dev->cc_lock);
+ 	survey->time_bss_rx = div_u64(state->cc_bss_rx, 1000);
