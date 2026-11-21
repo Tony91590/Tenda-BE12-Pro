@@ -1,42 +1,22 @@
-From 50e0db09938427dcd58fc6056d59aa69a2e8e54d Mon Sep 17 00:00:00 2001
-From: Tony91590 <91764010+Tony91590@users.noreply.github.com>
-Date: Wed, 11 Nov 2026 21:16:31 +0100
-Subject: [PATCH] Update odhcpd package version and hash
+From 23f7227d38a66dbc6b810121d2816d3c568c0ded Mon Sep 17 00:00:00 2001
+From: Anthony LEFEBVRE <tony91590@hotmail.com>
+Date: Fri, 20 Nov 2026 17:37:40 +0000
+Subject: [PATCH] luci-app-upnp: fix nftables UPnP rule parsing
 
 ---
- package/network/services/odhcpd/Makefile | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ applications/luci-app-upnp/root/usr/share/rpcd/ucode/luci.upnp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/package/network/services/odhcpd/Makefile b/package/network/services/odhcpd/Makefile
-index 9353be754fefee..a02e84a6612007 100644
---- a/package/network/services/odhcpd/Makefile
-+++ b/package/network/services/odhcpd/Makefile
-@@ -12,9 +12,9 @@ PKG_RELEASE:=1
+diff --git a/applications/luci-app-upnp/root/usr/share/rpcd/ucode/luci.upnp b/applications/luci-app-upnp/root/usr/share/rpcd/ucode/luci.upnp
+index f72b57b7ba84..c9c1f78c4f9b 100644
+--- a/feeds/luci/applications/luci-app-upnp/root/usr/share/rpcd/ucode/luci.upnp
++++ b/feeds/luci/applications/luci-app-upnp/root/usr/share/rpcd/ucode/luci.upnp
+@@ -67,7 +67,7 @@ const methods = {
  
- PKG_SOURCE_PROTO:=git
- PKG_SOURCE_URL=$(PROJECT_GIT)/project/odhcpd.git
--PKG_MIRROR_HASH:=b9bd30d14f79e34b9f3511a511ef1cd1c4541568448e91fd02ae9173f12a0b64
--PKG_SOURCE_DATE:=2026-06-29
--PKG_SOURCE_VERSION:=5d7be43f8b9dec0eb47e245cfab81108bb131273
-+PKG_MIRROR_HASH:=f30d47dbec4429b4bd80d97e3176bfc1660c21842b017920d54a72d9862df68d
-+PKG_SOURCE_DATE:=2026-10-28
-+PKG_SOURCE_VERSION:=26aa64a0bd819ba34bfcaebf02d0a3d8da530723
+ 			if (nft) {
+ 				for (let line = nft.read('line'), num = 1; length(line); line = nft.read('line')) {
+-					let m = match(line, /^\t\tiif ".+" @nh,72,8 (0x6|0x11) th dport ([0-9]+) dnat ip to ([0-9.]+):([0-9]+)/);
++					let m = match(line, /^.*iif ".+" @nh,72,8 (0x6|0x11) th dport ([0-9]+).*dnat ip to ([0-9.]+):([0-9]+)/);
  
- PKG_MAINTAINER:=Álvaro Fernández Rojas <noltari@gmail.com>
- PKG_LICENSE:=GPL-2.0
-@@ -40,6 +40,7 @@ define Package/odhcpd
-   $(Package/odhcpd/default)
-   TITLE:=OpenWrt DHCPv4/DHCPv6/NDP/RA server
-   VARIANT:=full
-+  PROVIDES:=odhcpd-ipv6only
- endef
- 
- define Package/odhcpd/description
-@@ -54,6 +55,7 @@ define Package/odhcpd-ipv6only
-   $(Package/odhcpd/default)
-   TITLE:=OpenWrt DHCPv6/NDP/RA server (without DHCPv4)
-   VARIANT:=ipv6only
-+  DEFAULT_VARIANT:=1
-   DEPENDS+=@IPV6
- endef
- 
+ 					if (m) {
+ 						push(rules, {
