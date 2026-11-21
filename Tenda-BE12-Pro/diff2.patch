@@ -1,6 +1,5 @@
-
 --- /dev/null
-+++ b/Tenda-BE12-Pro/patches/999-mt76-survey-noise-fallback.patch
++++ b/package/kernel/mt76/patches/999-mt76-survey-noise-fallback.patch
 @@ -0,0 +1,22 @@
 +--- a/mac80211.c
 ++++ b/mac80211.c
