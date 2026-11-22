@@ -22,6 +22,7 @@ else
     echo "WARNING: diff.patch not found: $PATCH_FILE"
 fi
 
+rm -f package/mtk/applications/luci-app-turboacc-mtk/Makefile.orig
 rm -f package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc.orig
 rm -f package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc.orig
 rm -f package/mtk/applications/luci-app-turboacc-mtk/htdocs/luci-static/resources/view/turboacc.js.orig
@@ -30,7 +31,6 @@ rm -f package/base-files/files/bin/config_generate.orig
 rm -f package/base-files/files/etc/shadow.orig
 rm -f package/mtk/applications/mtwifi-cfg/files/mtwifi-cfg/mtwifi_defs.lua.orig
 rm -f feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/css/cascade.css.orig
-rm -f package/base-files/files/etc/shadow.orig
 
 #rm -rf package/mtk/applications/luci-app-turboacc-mtk
 
