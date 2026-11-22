@@ -1,13 +1,3 @@
---- a/package/mtk/applications/luci-app-turboacc-mtk/Makefile
-+++ b/package/mtk/applications/luci-app-turboacc-mtk/Makefile
-@@ -13,7 +13,6 @@ LUCI_DEPENDS:= \
- 	+kmod-nft-socket +kmod-nft-tproxy +kmod-nft-nat \
- 	+kmod-ipt-nat6 +kmod-ipt-nat \
- 	+kmod-ipt-physdev \
--	+kmod-ipt-fullconenat \
- 	@!PACKAGE_luci-app-turboacc
- LUCI_PKGARCH:=all
- 
 --- a/package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc
 +++ b/package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc
 @@ -57,15 +57,13 @@ start_service() {
