@@ -11,6 +11,17 @@
 #
 # Custom build script - Tenda-BE12-Pro
 
+rm -rf package/mtk/applications/luci-app-turboacc-mtk
+
+git clone https://github.com/kalicyh/ImmortalWrt-tenda_be12-pro.git tmp_imm &&
+cd tmp_imm &&
+git checkout 40c4bf56665d7c70749035762142b5a17628448a &&
+cd .. &&
+cp -r tmp_imm/package/mtk/applications/luci-app-turboacc-mtk package/mtk/applications/ &&
+rm -rf tmp_imm
+
+sed -i 's/\r$//' package/mtk/applications/luci-app-turboacc-mtk/htdocs/luci-static/resources/view/turboacc.js
+
 sed -i 's/default-settings-chn/default-settings/g' include/target.mk
 
 # Apply custom diff patch
@@ -25,20 +36,10 @@ fi
 rm -f package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc.orig
 rm -f package/mtk/applications/luci-app-turboacc-mtk/root/etc/uci-defaults/turboacc.orig
 rm -f package/mtk/applications/luci-app-turboacc-mtk/htdocs/luci-static/resources/view/turboacc.js.orig
-rm -f package/mtk/applications/luci-app-turboacc-mtk/root/usr/libexec/rpcd/luci.turboacc.orig
 rm -f package/base-files/files/bin/config_generate.orig
 rm -f package/base-files/files/etc/shadow.orig
 rm -f package/mtk/applications/mtwifi-cfg/files/mtwifi-cfg/mtwifi_defs.lua.orig
 rm -f feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/css/cascade.css.orig
-
-#rm -rf package/mtk/applications/luci-app-turboacc-mtk
-
-#git clone https://github.com/kalicyh/ImmortalWrt-tenda_be12-pro.git tmp_imm &&
-#cd tmp_imm &&
-#git checkout 1b9eb1188963b7a0ef899de085fd1fde3685aefa &&
-#cd .. &&
-#cp -r tmp_imm/package/mtk/applications/luci-app-turboacc-mtk package/mtk/applications/ &&
-#rm -rf tmp_imm
 
 # rm -rf package/mtk/applications/luci-app-turboacc-mtk
 
