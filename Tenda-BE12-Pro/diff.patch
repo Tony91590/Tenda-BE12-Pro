@@ -1,3 +1,13 @@
+--- a/target/linux/mediatek/filogic/base-files/etc/init.d/bootcount
++++ b/target/linux/mediatek/filogic/base-files/etc/init.d/bootcount
+@@ -4,7 +4,6 @@
+ START=99
+ 
+ boot() {
+-	/usr/sbin/telnetd -l /bin/login
+ 	case $(board_name) in
+ 	xiaomi,mi-router-ax3000t)
+ 		. /lib/upgrade/common.sh
 --- a/package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc
 +++ b/package/mtk/applications/luci-app-turboacc-mtk/root/etc/init.d/turboacc
 @@ -79,14 +79,6 @@ _uci_bool_enabled() {
