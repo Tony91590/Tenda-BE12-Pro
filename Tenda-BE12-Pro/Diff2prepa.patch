@@ -1,1 +1,353 @@
+From 4c431534c9ca93a10bdd441eff47fc304028303d Mon Sep 17 00:00:00 2001
+From: Tony91590 <91764010+Tony91590@users.noreply.github.com>
+Date: Tue, 24 Nov 2026 11:13:29 +0100
+Subject: [PATCH 1/7] Update version information to OpenWrt 24.10.2
 
+---
+ include/version.mk | 19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
+
+diff --git a/include/version.mk b/include/version.mk
+index 80b1c1e5703..74e6bd419d2 100644
+--- a/include/version.mk
++++ b/include/version.mk
+@@ -23,32 +23,32 @@ PKG_CONFIG_DEPENDS += \
+ sanitize = $(call tolower,$(subst _,-,$(subst $(space),-,$(1))))
+ 
+ VERSION_NUMBER:=$(call qstrip,$(CONFIG_VERSION_NUMBER))
+-VERSION_NUMBER:=$(if $(VERSION_NUMBER),$(VERSION_NUMBER),24.10-SNAPSHOT)
++VERSION_NUMBER:=$(if $(VERSION_NUMBER),$(VERSION_NUMBER),24.10.2)
+ 
+ VERSION_CODE:=$(call qstrip,$(CONFIG_VERSION_CODE))
+-VERSION_CODE:=$(if $(VERSION_CODE),$(VERSION_CODE),$(REVISION))
++VERSION_CODE:=$(if $(VERSION_CODE),$(VERSION_CODE),r28739-d9340319c6)
+ 
+ VERSION_REPO:=$(call qstrip,$(CONFIG_VERSION_REPO))
+-VERSION_REPO:=$(if $(VERSION_REPO),$(VERSION_REPO),https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT)
++VERSION_REPO:=$(if $(VERSION_REPO),$(VERSION_REPO),https://downloads.openwrt.org/releases/24.10.2)
+ 
+ VERSION_DIST:=$(call qstrip,$(CONFIG_VERSION_DIST))
+-VERSION_DIST:=$(if $(VERSION_DIST),$(VERSION_DIST),ImmortalWrt)
++VERSION_DIST:=$(if $(VERSION_DIST),$(VERSION_DIST),OpenWrt)
+ VERSION_DIST_SANITIZED:=$(call sanitize,$(VERSION_DIST))
+ 
+ VERSION_MANUFACTURER:=$(call qstrip,$(CONFIG_VERSION_MANUFACTURER))
+-VERSION_MANUFACTURER:=$(if $(VERSION_MANUFACTURER),$(VERSION_MANUFACTURER),ImmortalWrt)
++VERSION_MANUFACTURER:=$(if $(VERSION_MANUFACTURER),$(VERSION_MANUFACTURER),OpenWrt)
+ 
+ VERSION_MANUFACTURER_URL:=$(call qstrip,$(CONFIG_VERSION_MANUFACTURER_URL))
+-VERSION_MANUFACTURER_URL:=$(if $(VERSION_MANUFACTURER_URL),$(VERSION_MANUFACTURER_URL),https://immortalwrt.org/)
++VERSION_MANUFACTURER_URL:=$(if $(VERSION_MANUFACTURER_URL),$(VERSION_MANUFACTURER_URL),https://openwrt.org/)
+ 
+ VERSION_BUG_URL:=$(call qstrip,$(CONFIG_VERSION_BUG_URL))
+-VERSION_BUG_URL:=$(if $(VERSION_BUG_URL),$(VERSION_BUG_URL),https://github.com/immortalwrt/immortalwrt/issues)
++VERSION_BUG_URL:=$(if $(VERSION_BUG_URL),$(VERSION_BUG_URL),https://bugs.openwrt.org/)
+ 
+ VERSION_HOME_URL:=$(call qstrip,$(CONFIG_VERSION_HOME_URL))
+-VERSION_HOME_URL:=$(if $(VERSION_HOME_URL),$(VERSION_HOME_URL),https://immortalwrt.org/)
++VERSION_HOME_URL:=$(if $(VERSION_HOME_URL),$(VERSION_HOME_URL),https://openwrt.org/)
+ 
+ VERSION_SUPPORT_URL:=$(call qstrip,$(CONFIG_VERSION_SUPPORT_URL))
+-VERSION_SUPPORT_URL:=$(if $(VERSION_SUPPORT_URL),$(VERSION_SUPPORT_URL),https://github.com/immortalwrt/immortalwrt/discussions)
++VERSION_SUPPORT_URL:=$(if $(VERSION_SUPPORT_URL),$(VERSION_SUPPORT_URL),https://forum.openwrt.org/)
+ 
+ VERSION_PRODUCT:=$(call qstrip,$(CONFIG_VERSION_PRODUCT))
+ VERSION_PRODUCT:=$(if $(VERSION_PRODUCT),$(VERSION_PRODUCT),Generic)
+@@ -106,4 +106,3 @@ VERSION_SED_SCRIPT:=$(SED) 's,%U,$(call sed_escape,$(VERSION_REPO)),g' \
+ 	-e 's,%P,$(call sed_escape,$(VERSION_PRODUCT)),g' \
+ 	-e 's,%h,$(call sed_escape,$(VERSION_HWREV)),g' \
+ 	-e 's,%B,$(call sed_escape,$(SOURCE_DATE_EPOCH)),g'
+-
+
+From dd59cd4fc3114986e1519c9317145cfc81ef078c Mon Sep 17 00:00:00 2001
+From: Tony91590 <91764010+Tony91590@users.noreply.github.com>
+Date: Tue, 24 Nov 2026 11:15:48 +0100
+Subject: [PATCH 2/7] Update default IP and hostname in config_generate
+
+---
+ package/base-files/files/bin/config_generate | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/package/base-files/files/bin/config_generate b/package/base-files/files/bin/config_generate
+index 2a0462ea56c..58a587f3406 100755
+--- a/package/base-files/files/bin/config_generate
++++ b/package/base-files/files/bin/config_generate
+@@ -162,7 +162,7 @@ generate_network() {
+ 		static)
+ 			local ipad
+ 			case "$1" in
+-				lan) ipad=${ipaddr:-"192.168.6.1"} ;;
++				lan) ipad=${ipaddr:-"192.168.1.1"} ;;
+ 				*) ipad=${ipaddr:-"192.168.$((addr_offset++)).1"} ;;
+ 			esac
+ 
+@@ -311,20 +311,20 @@ generate_static_system() {
+ 	uci -q batch <<-EOF
+ 		delete system.@system[0]
+ 		add system system
+-		set system.@system[-1].hostname='ImmortalWrt'
++		set system.@system[-1].hostname='OpenWrt'
+ 		set system.@system[-1].timezone='UTC'
+ 		set system.@system[-1].ttylogin='0'
+-		set system.@system[-1].log_size='128'
++		set system.@system[-1].log_size='512'
+ 		set system.@system[-1].urandom_seed='0'
+ 
+ 		delete system.ntp
+ 		set system.ntp='timeserver'
+ 		set system.ntp.enabled='1'
+ 		set system.ntp.enable_server='0'
+-		add_list system.ntp.server='time1.apple.com'
+-		add_list system.ntp.server='time1.google.com'
+-		add_list system.ntp.server='time.cloudflare.com'
+-		add_list system.ntp.server='pool.ntp.org'
++		add_list system.ntp.server='0.openwrt.pool.ntp.org'
++		add_list system.ntp.server='1.openwrt.pool.ntp.org'
++		add_list system.ntp.server='2.openwrt.pool.ntp.org'
++		add_list system.ntp.server='3.openwrt.pool.ntp.org'
+ 	EOF
+ 
+ 	if json_is_a system object; then
+
+From 0386217dc7f3428204c1e19ee787dad10034fbbd Mon Sep 17 00:00:00 2001
+From: Tony91590 <91764010+Tony91590@users.noreply.github.com>
+Date: Tue, 24 Nov 2026 11:17:35 +0100
+Subject: [PATCH 3/7] Update banner text for wireless freedom
+
+---
+ package/base-files/files/etc/banner | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/package/base-files/files/etc/banner b/package/base-files/files/etc/banner
+index 1b6469c8cb5..f3af3c014f2 100644
+--- a/package/base-files/files/etc/banner
++++ b/package/base-files/files/etc/banner
+@@ -1,9 +1,8 @@
+-.___                               __         .__
+-|   | _____   _____   ____________/  |______  |  |
+-|   |/     \ /     \ /  _ \_  __ \   __\__  \ |  |
+-|   |  Y Y  \  Y Y  (  <_> )  | \/|  |  / __ \|  |__
+-|___|__|_|  /__|_|  /\____/|__|   |__| (____  /____/
+-          \/      \/  BE FREE AND UNAFRAID  \/
++  _______                     ________        __
++ |       |.-----.-----.-----.|  |  |  |.----.|  |_
++ |   -   ||  _  |  -__|     ||  |  |  ||   _||   _|
++ |_______||   __|_____|__|__||________||__|  |____|
++          |__| W I R E L E S S   F R E E D O M
+  -----------------------------------------------------
+  %D %V, %C
+  -----------------------------------------------------
+
+From a8c86971cd6dfc5f87290dab0323fc383d6284f0 Mon Sep 17 00:00:00 2001
+From: Tony91590 <91764010+Tony91590@users.noreply.github.com>
+Date: Tue, 24 Nov 2026 11:52:00 +0100
+Subject: [PATCH 4/7] Update Linux version and kernel hash for 6.6
+
+---
+ include/kernel-6.6 | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/kernel-6.6 b/include/kernel-6.6
+index a2e954d0020..c39b5c102aa 100644
+--- a/include/kernel-6.6
++++ b/include/kernel-6.6
+@@ -1,2 +1,2 @@
+-LINUX_VERSION-6.6 = .94
+-LINUX_KERNEL_HASH-6.6.94 = 713981ea26b20b476ba4ce880b76b21294576788d5db1c2188b167bcb06ecc56
++LINUX_VERSION-6.6 = .93
++LINUX_KERNEL_HASH-6.6.93 = 0d79ff359635e9f009f1e330deed5f3aefd8c452b80660bffdc504b877797719
+
+From 2e84101ddaf83e0ecbd0ccbbb61f5ed3d918cfaa Mon Sep 17 00:00:00 2001
+From: Tony91590 <91764010+Tony91590@users.noreply.github.com>
+Date: Tue, 24 Nov 2026 12:02:24 +0100
+Subject: [PATCH 5/7] Add files via upload
+
+---
+ ....16-spi-bcm63xx-spi-fix-shared-reset.patch | 32 +++++++++++++++++++
+ ...6-spi-bcm63xx-hsspi-fix-shared-reset.patch | 32 +++++++++++++++++++
+ ...brcm-legacy-fix-pskb_may_pull-length.patch | 31 ++++++++++++++++++
+ 3 files changed, 95 insertions(+)
+ create mode 100644 target/linux/generic/backport-6.6/421-01-v6.16-spi-bcm63xx-spi-fix-shared-reset.patch
+ create mode 100644 target/linux/generic/backport-6.6/421-02-v6.16-spi-bcm63xx-hsspi-fix-shared-reset.patch
+ create mode 100644 target/linux/generic/backport-6.6/725-01-v6.16-net-dsa-tag_brcm-legacy-fix-pskb_may_pull-length.patch
+
+diff --git a/target/linux/generic/backport-6.6/421-01-v6.16-spi-bcm63xx-spi-fix-shared-reset.patch b/target/linux/generic/backport-6.6/421-01-v6.16-spi-bcm63xx-spi-fix-shared-reset.patch
+new file mode 100644
+index 00000000000..e886350d26d
+--- /dev/null
++++ b/target/linux/generic/backport-6.6/421-01-v6.16-spi-bcm63xx-spi-fix-shared-reset.patch
+@@ -0,0 +1,32 @@
++From 5ad20e3d8cfe3b2e42bbddc7e0ebaa74479bb589 Mon Sep 17 00:00:00 2001
++From: =?UTF-8?q?=C3=81lvaro=20Fern=C3=A1ndez=20Rojas?= <noltari@gmail.com>
++Date: Thu, 29 May 2025 15:09:14 +0200
++Subject: [PATCH] spi: bcm63xx-spi: fix shared reset
++MIME-Version: 1.0
++Content-Type: text/plain; charset=UTF-8
++Content-Transfer-Encoding: 8bit
++
++Some bmips SoCs (bcm6362, bcm63268) share the same SPI reset for both SPI
++and HSSPI controllers, so reset shouldn't be exclusive.
++
++Fixes: 38807adeaf1e ("spi: bcm63xx-spi: add reset support")
++Reported-by: Jonas Gorski <jonas.gorski@gmail.com>
++Signed-off-by: Álvaro Fernández Rojas <noltari@gmail.com>
++Reviewed-by: Florian Fainelli <florian.fainelli@broadcom.com>
++Link: https://patch.msgid.link/20250529130915.2519590-2-noltari@gmail.com
++Signed-off-by: Mark Brown <broonie@kernel.org>
++---
++ drivers/spi/spi-bcm63xx.c | 2 +-
++ 1 file changed, 1 insertion(+), 1 deletion(-)
++
++--- a/drivers/spi/spi-bcm63xx.c
+++++ b/drivers/spi/spi-bcm63xx.c
++@@ -523,7 +523,7 @@ static int bcm63xx_spi_probe(struct plat
++ 		return PTR_ERR(clk);
++ 	}
++ 
++-	reset = devm_reset_control_get_optional_exclusive(dev, NULL);
+++	reset = devm_reset_control_get_optional_shared(dev, NULL);
++ 	if (IS_ERR(reset))
++ 		return PTR_ERR(reset);
++ 
+diff --git a/target/linux/generic/backport-6.6/421-02-v6.16-spi-bcm63xx-hsspi-fix-shared-reset.patch b/target/linux/generic/backport-6.6/421-02-v6.16-spi-bcm63xx-hsspi-fix-shared-reset.patch
+new file mode 100644
+index 00000000000..3c30269d079
+--- /dev/null
++++ b/target/linux/generic/backport-6.6/421-02-v6.16-spi-bcm63xx-hsspi-fix-shared-reset.patch
+@@ -0,0 +1,32 @@
++From 3d6d84c8f2f66d3fd6a43a1e2ce8e6b54c573960 Mon Sep 17 00:00:00 2001
++From: =?UTF-8?q?=C3=81lvaro=20Fern=C3=A1ndez=20Rojas?= <noltari@gmail.com>
++Date: Thu, 29 May 2025 15:09:15 +0200
++Subject: [PATCH] spi: bcm63xx-hsspi: fix shared reset
++MIME-Version: 1.0
++Content-Type: text/plain; charset=UTF-8
++Content-Transfer-Encoding: 8bit
++
++Some bmips SoCs (bcm6362, bcm63268) share the same SPI reset for both SPI
++and HSSPI controllers, so reset shouldn't be exclusive.
++
++Fixes: 0eeadddbf09a ("spi: bcm63xx-hsspi: add reset support")
++Reported-by: Jonas Gorski <jonas.gorski@gmail.com>
++Signed-off-by: Álvaro Fernández Rojas <noltari@gmail.com>
++Reviewed-by: Florian Fainelli <florian.fainelli@broadcom.com>
++Link: https://patch.msgid.link/20250529130915.2519590-3-noltari@gmail.com
++Signed-off-by: Mark Brown <broonie@kernel.org>
++---
++ drivers/spi/spi-bcm63xx-hsspi.c | 2 +-
++ 1 file changed, 1 insertion(+), 1 deletion(-)
++
++--- a/drivers/spi/spi-bcm63xx-hsspi.c
+++++ b/drivers/spi/spi-bcm63xx-hsspi.c
++@@ -745,7 +745,7 @@ static int bcm63xx_hsspi_probe(struct pl
++ 	if (IS_ERR(clk))
++ 		return PTR_ERR(clk);
++ 
++-	reset = devm_reset_control_get_optional_exclusive(dev, NULL);
+++	reset = devm_reset_control_get_optional_shared(dev, NULL);
++ 	if (IS_ERR(reset))
++ 		return PTR_ERR(reset);
++ 
+diff --git a/target/linux/generic/backport-6.6/725-01-v6.16-net-dsa-tag_brcm-legacy-fix-pskb_may_pull-length.patch b/target/linux/generic/backport-6.6/725-01-v6.16-net-dsa-tag_brcm-legacy-fix-pskb_may_pull-length.patch
+new file mode 100644
+index 00000000000..9fa88d2d3f9
+--- /dev/null
++++ b/target/linux/generic/backport-6.6/725-01-v6.16-net-dsa-tag_brcm-legacy-fix-pskb_may_pull-length.patch
+@@ -0,0 +1,31 @@
++From efdddc4484859082da6c7877ed144c8121c8ea55 Mon Sep 17 00:00:00 2001
++From: =?UTF-8?q?=C3=81lvaro=20Fern=C3=A1ndez=20Rojas?= <noltari@gmail.com>
++Date: Thu, 29 May 2025 14:44:06 +0200
++Subject: [PATCH] net: dsa: tag_brcm: legacy: fix pskb_may_pull length
++MIME-Version: 1.0
++Content-Type: text/plain; charset=UTF-8
++Content-Transfer-Encoding: 8bit
++
++BRCM_LEG_PORT_ID was incorrectly used for pskb_may_pull length.
++The correct check is BRCM_LEG_TAG_LEN + VLAN_HLEN, or 10 bytes.
++
++Fixes: 964dbf186eaa ("net: dsa: tag_brcm: add support for legacy tags")
++Signed-off-by: Álvaro Fernández Rojas <noltari@gmail.com>
++Reviewed-by: Florian Fainelli <florian.fainelli@broadcom.com>
++Link: https://patch.msgid.link/20250529124406.2513779-1-noltari@gmail.com
++Signed-off-by: Jakub Kicinski <kuba@kernel.org>
++---
++ net/dsa/tag_brcm.c | 2 +-
++ 1 file changed, 1 insertion(+), 1 deletion(-)
++
++--- a/net/dsa/tag_brcm.c
+++++ b/net/dsa/tag_brcm.c
++@@ -257,7 +257,7 @@ static struct sk_buff *brcm_leg_tag_rcv(
++ 	int source_port;
++ 	u8 *brcm_tag;
++ 
++-	if (unlikely(!pskb_may_pull(skb, BRCM_LEG_PORT_ID)))
+++	if (unlikely(!pskb_may_pull(skb, BRCM_LEG_TAG_LEN + VLAN_HLEN)))
++ 		return NULL;
++ 
++ 	brcm_tag = dsa_etype_header_pos_rx(skb);
+
+From 7c7704418031c1f4931aa1b076d4a589be93d0d0 Mon Sep 17 00:00:00 2001
+From: Tony91590 <91764010+Tony91590@users.noreply.github.com>
+Date: Tue, 24 Nov 2026 12:03:46 +0100
+Subject: [PATCH 6/7] Remove CONFIG_ACPI_AGDI from config-6.6
+
+---
+ target/linux/generic/config-6.6 | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/target/linux/generic/config-6.6 b/target/linux/generic/config-6.6
+index 078700bfd51..2a5365bf573 100644
+--- a/target/linux/generic/config-6.6
++++ b/target/linux/generic/config-6.6
+@@ -14,7 +14,6 @@ CONFIG_32BIT=y
+ # CONFIG_ACERHDF is not set
+ # CONFIG_ACER_WIRELESS is not set
+ # CONFIG_ACORN_PARTITION is not set
+-# CONFIG_ACPI_AGDI is not set
+ # CONFIG_ACPI_ALS is not set
+ # CONFIG_ACPI_APEI is not set
+ # CONFIG_ACPI_APEI_PCIEAER is not set
+
+From fda809a5c587e3a53db723fbbecfe6f26cd6dc69 Mon Sep 17 00:00:00 2001
+From: Tony91590 <91764010+Tony91590@users.noreply.github.com>
+Date: Tue, 24 Nov 2026 13:33:58 +0100
+Subject: [PATCH 7/7] Change default values for OpenWrt configuration
+
+---
+ package/base-files/image-config.in | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/package/base-files/image-config.in b/package/base-files/image-config.in
+index 6a85139d6e4..e86edd7c8ec 100644
+--- a/package/base-files/image-config.in
++++ b/package/base-files/image-config.in
+@@ -165,10 +165,10 @@ if VERSIONOPT
+ 	config VERSION_DIST
+ 		string
+ 		prompt "Release distribution"
+-		default "ImmortalWrt"
++		default "OpenWrt"
+ 		help
+ 			This is the name of the release distribution.
+-			If unspecified, it defaults to ImmortalWrt.
++			If unspecified, it defaults to OpenWrt.
+ 
+ 	config VERSION_NUMBER
+ 		string
+@@ -190,7 +190,7 @@ if VERSIONOPT
+ 	config VERSION_REPO
+ 		string
+ 		prompt "Release repository"
+-		default "https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT"
++		default "https://downloads.openwrt.org/releases/24.10.2"
+ 		help
+ 			This is the repository address embedded in the image, it defaults
+ 			to the trunk snapshot repo; the url may contain the following placeholders:
+@@ -266,7 +266,7 @@ if VERSIONOPT
+ 	config VERSION_CODE_FILENAMES
+ 		bool
+ 		prompt "Revision code in filenames"
+-		default y
++		default n
+ 		help
+ 			Enable this to include the revision identifier or the configured
+ 			version code into the firmware image, SDK- and Image Builder archive
