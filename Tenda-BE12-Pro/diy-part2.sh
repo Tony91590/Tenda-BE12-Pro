@@ -34,6 +34,7 @@ else
     echo "WARNING: diff.patch not found: $PATCH_FILE"
 fi
 
+rm -f package/mtk/applications/mtwifi-cfg/files/mtwifi.sh.orig
 rm -f package/emortal/default-settings/files/99-default-settings.orig
 rm -f config/Config-kernel.in.orig
 rm -f include/kernel-defaults.mk.orig
