@@ -139,9 +139,6 @@
 + 	if (IS_ERR(reset))
 + 		return PTR_ERR(reset);
 + 
-diff --git a/target/linux/generic/backport-6.6/421-02-v6.16-spi-bcm63xx-hsspi-fix-shared-reset.patch b/target/linux/generic/backport-6.6/421-02-v6.16-spi-bcm63xx-hsspi-fix-shared-reset.patch
-new file mode 100644
-index 00000000000..3c30269d079
 --- /dev/null
 +++ b/target/linux/generic/backport-6.6/421-02-v6.16-spi-bcm63xx-hsspi-fix-shared-reset.patch
 @@ -0,0 +1,32 @@
@@ -177,9 +174,6 @@ index 00000000000..3c30269d079
 + 	if (IS_ERR(reset))
 + 		return PTR_ERR(reset);
 + 
-diff --git a/target/linux/generic/backport-6.6/725-01-v6.16-net-dsa-tag_brcm-legacy-fix-pskb_may_pull-length.patch b/target/linux/generic/backport-6.6/725-01-v6.16-net-dsa-tag_brcm-legacy-fix-pskb_may_pull-length.patch
-new file mode 100644
-index 00000000000..9fa88d2d3f9
 --- /dev/null
 +++ b/target/linux/generic/backport-6.6/725-01-v6.16-net-dsa-tag_brcm-legacy-fix-pskb_may_pull-length.patch
 @@ -0,0 +1,31 @@
@@ -214,18 +208,6 @@ index 00000000000..9fa88d2d3f9
 + 		return NULL;
 + 
 + 	brcm_tag = dsa_etype_header_pos_rx(skb);
-
-From 7c7704418031c1f4931aa1b076d4a589be93d0d0 Mon Sep 17 00:00:00 2001
-From: Tony91590 <91764010+Tony91590@users.noreply.github.com>
-Date: Tue, 24 Nov 2026 12:03:46 +0100
-Subject: [PATCH 6/7] Remove CONFIG_ACPI_AGDI from config-6.6
-
----
- target/linux/generic/config-6.6 | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/target/linux/generic/config-6.6 b/target/linux/generic/config-6.6
-index 078700bfd51..2a5365bf573 100644
 --- a/target/linux/generic/config-6.6
 +++ b/target/linux/generic/config-6.6
 @@ -14,7 +14,6 @@ CONFIG_32BIT=y
@@ -236,18 +218,6 @@ index 078700bfd51..2a5365bf573 100644
  # CONFIG_ACPI_ALS is not set
  # CONFIG_ACPI_APEI is not set
  # CONFIG_ACPI_APEI_PCIEAER is not set
-
-From fda809a5c587e3a53db723fbbecfe6f26cd6dc69 Mon Sep 17 00:00:00 2001
-From: Tony91590 <91764010+Tony91590@users.noreply.github.com>
-Date: Tue, 24 Nov 2026 13:33:58 +0100
-Subject: [PATCH 7/7] Change default values for OpenWrt configuration
-
----
- package/base-files/image-config.in | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/package/base-files/image-config.in b/package/base-files/image-config.in
-index 6a85139d6e4..e86edd7c8ec 100644
 --- a/package/base-files/image-config.in
 +++ b/package/base-files/image-config.in
 @@ -165,10 +165,10 @@ if VERSIONOPT
