@@ -1,3 +1,26 @@
+--- a/package/mtk/applications/mtwifi-cfg/files/mtwifi.sh
++++ b/package/mtk/applications/mtwifi-cfg/files/mtwifi.sh
+@@ -26,17 +26,17 @@ detect_mtwifi() {
+ 				if [ "$band" = "2g" ]; then
+ 					htmode="EHT20"
+ 					htbsscoex="0"
+-					ssid="ImmortalWrt-2.4G"
++					ssid="OpenWrt-2.4G"
+ 					channel="auto"
+ 				elif [ "$band" = "5g" ]; then
+ 					htmode="EHT160"
+ 					htbsscoex="0"
+-					ssid="ImmortalWrt-5G"
++					ssid="OpenWrt-5G"
+ 					channel="36"
+ 				elif [ "$band" = "6g" ]; then
+ 					htmode="EHT160"
+ 					htbsscoex="0"
+-					ssid="ImmortalWrt-6G"
++					ssid="OpenWrt-6G"
+ 				fi
+ 
+ 				uci -q batch <<-EOF
 --- a/package/emortal/default-settings/files/99-default-settings
 +++ b/package/emortal/default-settings/files/99-default-settings
 @@ -19,6 +19,9 @@ if ! uci -q get system.@system[0].zram_size_mb > "/dev/null"; then
