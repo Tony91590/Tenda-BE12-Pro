@@ -1,3 +1,15 @@
+--- a/package/emortal/default-settings/files/99-default-settings
++++ b/package/emortal/default-settings/files/99-default-settings
+@@ -19,6 +19,9 @@ if ! uci -q get system.@system[0].zram_size_mb > "/dev/null"; then
+ 	EOF
+ fi
+ 
++# Add the MediaTek Filogic kernel modules repository if missing
++echo 'src/gz openwrt_kmods https://downloads.openwrt.org/releases/24.10.2/targets/mediatek/filogic/kmods/6.6.93-1-6a9e125268c43e0bae8cecb014c8ab03' >> /etc/opkg/distfeeds.conf
++
+ sed -i "/log-facility/d" "/etc/dnsmasq.conf"
+ echo "log-facility=/dev/null" >> "/etc/dnsmasq.conf"
+ 
 --- a/config/Config-kernel.in
 +++ b/config/Config-kernel.in
 @@ -2,6 +2,12 @@
