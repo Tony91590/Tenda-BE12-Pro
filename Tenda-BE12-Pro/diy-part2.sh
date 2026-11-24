@@ -10,6 +10,7 @@
 # Description: OpenWrt DIY script part 2 (After Update feeds)
 #
 # Custom build script - Tenda-BE12-Pro
+# Vermagic 6.6.93-1-6a9e125268c43e0bae8cecb014c8ab03
 
 sed -i 's/default-settings-chn/default-settings/g' include/target.mk
 
