@@ -11,6 +11,28 @@
 #
 # Custom build script - Tenda-BE12-Pro
 
+sed -i 's/ImmortalWrt/OpenWrt/g' package/base-files/files/bin/config_generate
+sed -i 's/pool.ntp.org/3.openwrt.pool.ntp.org/g' package/base-files/files/bin/config_generate
+sed -i 's/time1.apple.com/0.openwrt.pool.ntp.org/g' package/base-files/files/bin/config_generate
+sed -i 's/time1.google.com/1.openwrt.pool.ntp.org/g' package/base-files/files/bin/config_generate
+sed -i 's/time.cloudflare.com/2.openwrt.pool.ntp.org/g' package/base-files/files/bin/config_generate
+sed -i 's/default-settings-chn/default-settings/g' include/target.mk
+sed -i 's/ImmortalWrt/OpenWrt/g' include/version.mk
+sed -i 's,https://immortalwrt.org/,https://openwrt.org/,g' include/version.mk
+sed -i 's,https://github.com/immortalwrt/immortalwrt/issues,https://bugs.openwrt.org/,g' include/version.mk
+sed -i 's,https://github.com/immortalwrt/immortalwrt/discussions,https://forum.openwrt.org/,g' include/version.mk
+sed -i 's,https://downloads.immortalwrt.org/releases/21.02-SNAPSHOT,https://downloads.openwrt.org/releases/21.02-SNAPSHOT,g' include/version.mk
+cat > package/base-files/files/etc/banner << EOF
+  _______                     ________        __
+ |       |.-----.-----.-----.|  |  |  |.----.|  |_
+ |   -   ||  _  |  -__|     ||  |  |  ||   _||   _|
+ |_______||   __|_____|__|__||________||__|  |____|
+          |__| W I R E L E S S   F R E E D O M
+ -----------------------------------------------------
+ %D %V, %C
+ -----------------------------------------------------
+EOF
+
 rm -rf package/mtk/applications/luci-app-turboacc-mtk
 
 git clone https://github.com/kalicyh/ImmortalWrt-tenda_be12-pro.git tmp_imm &&
@@ -21,8 +43,6 @@ cp -r tmp_imm/package/mtk/applications/luci-app-turboacc-mtk package/mtk/applica
 rm -rf tmp_imm
 
 sed -i 's/\r$//' package/mtk/applications/luci-app-turboacc-mtk/htdocs/luci-static/resources/view/turboacc.js
-
-sed -i 's/default-settings-chn/default-settings/g' include/target.mk
 
 # Apply custom diff patch
 PATCH_FILE="$GITHUB_WORKSPACE/Tenda-BE12-Pro/diff.patch"
