@@ -1,3 +1,11 @@
+--- /dev/null
++++ b/version
+@@ -0,0 +1 @@
++r28739-d9340319c6
+--- /dev/null
++++ b/version.date
+@@ -0,0 +1 @@
++1750711236
 --- a/include/version.mk
 +++ b/include/version.mk
 @@ -23,32 +23,32 @@ PKG_CONFIG_DEPENDS += \
