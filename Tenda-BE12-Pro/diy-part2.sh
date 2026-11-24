@@ -62,6 +62,8 @@ rm -f package/base-files/files/etc/shadow.orig
 rm -f package/mtk/applications/mtwifi-cfg/files/mtwifi-cfg/mtwifi_defs.lua.orig
 rm -f feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/css/cascade.css.orig
 
+target/linux/generic/pending-6.6/650-Revert-ipv6-save-dontfrag-in-cork.patch
+
 # rm -rf package/mtk/applications/luci-app-turboacc-mtk
 
 # git clone -b sauvegarde https://github.com/kalicyh/ImmortalWrt-tenda_be12-pro.git tmp_imm
